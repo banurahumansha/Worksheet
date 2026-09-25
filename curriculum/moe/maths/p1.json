@@ -1,0 +1,43 @@
+{
+  "grade": "Primary 1",
+  "subject": "Mathematics",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "numbers_to_100": {
+      "display_name": "Numbers up to 100",
+      "rules": [
+        "Numbers must be strictly between 0 and 100.",
+        "Focus on counting, comparing, and ordering numbers.",
+        "Include concepts of tens and ones (place value).",
+        "Addition and subtraction operations must not involve values exceeding 100.",
+        "Word problems must be strictly 1-step."
+      ],
+      "heuristics": ["Number Bonds Method", "Act It Out / Draw a Picture"],
+      "vocabulary": ["more than", "fewer than", "greatest", "smallest", "tens", "ones", "number bond", "altogether", "left"],
+      "solution_steps": "1. Identify the parts and the whole using a number bond. 2. Write the simple addition or subtraction sentence. 3. Count up or down to find the answer."
+    },
+    "money": {
+      "display_name": "Money (Cents and Dollars separately)",
+      "rules": [
+        "Values must be strictly within $100 or 100¢.",
+        "Do NOT mix dollars and cents in a single calculation (no decimals like $1.20).",
+        "Keep dollar problems entirely in whole dollars, and cent problems entirely in whole cents.",
+        "Include counting coins (10¢, 20¢, 50¢, $1) and notes ($2, $5, $10, $50)."
+      ],
+      "heuristics": ["Skip Counting Method", "Simple Exchange Model"],
+      "vocabulary": ["buy", "cost", "pay", "cents (¢)", "dollars ($)", "change"],
+      "solution_steps": "1. Separate and group matching coins or notes. 2. Skip count the values from largest to smallest. 3. Add or subtract to find the total value or remaining change."
+    },
+    "geometry_and_patterns": {
+      "display_name": "Basic Shapes and Patterns",
+      "rules": [
+        "Shapes are strictly limited to 2D shapes: rectangles, squares, circles, and triangles.",
+        "Include identifying and classifying shapes by size, color, or shape.",
+        "Patterns must be simple repeating sequences based on one or two attributes (e.g., shape, size, color)."
+      ],
+      "heuristics": ["Visual Matching", "Look for Patterns"],
+      "vocabulary": ["rectangle", "square", "circle", "triangle", "pattern", "repeat", "next shape"],
+      "solution_steps": "1. Identify the core repeating block of the pattern. 2. Trace the attributes changing between shapes. 3. Predict the next shape in the sequence."
+    }
+  }
+}

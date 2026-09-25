@@ -1,0 +1,8 @@
+New changes 20/8/25
+======
+*Added SplitTree layout , changed Dagre layout
+* Zoom added
+*update Saveimage and Savepdf
+*Signup email case sensitivity handled
+*
+

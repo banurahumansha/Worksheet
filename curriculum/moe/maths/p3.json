@@ -1,0 +1,204 @@
+{
+  "grade": "Primary 3",
+  "subject": "Mathematics",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "whole_numbers_and_operations": {
+      "display_name": "Whole Numbers and Operations",
+      "rules": [
+        "Numbers must be strictly within 10,000.",
+        "Include place value concepts up to thousands (thousands, hundreds, tens, ones).",
+        "Addition and subtraction calculations must stay within 10,000.",
+        "Word problems can involve up to 2 steps maximum."
+      ],
+      "heuristics": [
+        "Part-Whole Model",
+        "Comparison Model (More than / Less than)"
+      ],
+      "vocabulary": [
+        "value",
+        "place value",
+        "greater than",
+        "smaller than",
+        "sum",
+        "difference",
+        "altogether",
+        "left"
+      ],
+      "solution_steps": "1. Set up the visual bar model units. 2. Perform vertical addition/subtraction. 3. Write the final statement."
+    },
+    "multiplication_and_division": {
+      "display_name": "Multiplication and Division",
+      "rules": [
+        "Focus strictly on the multiplication tables of 6, 7, 8, and 9.",
+        "Multiplication numbers must be limited to a 3-digit number multiplied by a 1-digit number (e.g., 342 x 7).",
+        "Division numbers must be limited to a 3-digit number divided by a 1-digit number (e.g., 854 / 6), allowing for quotients with remainders."
+      ],
+      "heuristics": [
+        "Equal Groups Model",
+        "Sharing and Grouping Concepts"
+      ],
+      "vocabulary": [
+        "product",
+        "quotient",
+        "remainder",
+        "equally",
+        "each",
+        "shared",
+        "groups of"
+      ],
+      "solution_steps": "1. Set up the long multiplication or long division working. 2. Execute calculation step-by-step. 3. State the final quotient and remainder clearly if applicable."
+    },
+    "fractions": {
+      "display_name": "Fractions",
+      "rules": [
+        "Denominators MUST be 12 or less (specifically 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12).",
+        "Addition and subtraction must use 'related fractions' only (one denominator is a perfect multiple of the other, e.g., 1/3 + 1/6).",
+        "The total sum of addition must be less than or equal to 1 whole.",
+        "No improper fractions or mixed numbers are allowed in questions or answers."
+      ],
+      "heuristics": [
+        "Fraction Part-Whole Bar Model",
+        "Comparison Model with Fractions"
+      ],
+      "vocabulary": [
+        "numerator",
+        "denominator",
+        "equivalent fractions",
+        "simplest form",
+        "fraction of a whole",
+        "remaining"
+      ],
+      "solution_steps": "1. Convert the fraction with the smaller denominator into an equivalent fraction to match the larger denominator. 2. Complete the addition/subtraction. 3. Simplify the resulting fraction to its simplest form."
+    },
+    "money": {
+      "display_name": "Money",
+      "rules": [
+        "Values must be strictly within $1,000.",
+        "Calculations must involve addition and subtraction of money in decimal notation (e.g., $14.55 + $3.80).",
+        "Word problems should simulate real life shopping scenarios."
+      ],
+      "heuristics": [
+        "Part-Whole Model",
+        "Comparison Model",
+        "Working Backwards (Change calculation)"
+      ],
+      "vocabulary": [
+        "total cost",
+        "change",
+        "spent",
+        "save",
+        "price",
+        "amount"
+      ],
+      "solution_steps": "1. Align decimal points vertically. 2. Add or subtract from right to left (cents to dollars). 3. Ensure the final answer has a '$' sign and two decimal places."
+    },
+    "length_mass_volume": {
+      "display_name": "Length, Mass, and Volume",
+      "rules": [
+        "Units used: Length (m, cm, km), Mass (kg, g), Volume (l, ml).",
+        "Include compound unit conversion without decimals (e.g., convert 2 m 5 cm to 205 cm, or 1 kg 400 g to 1400 g).",
+        "Word problems are restricted to a maximum of 2 steps."
+      ],
+      "heuristics": [
+        "Measurement Bar Modeling"
+      ],
+      "vocabulary": [
+        "total mass",
+        "capacity",
+        "heavier than",
+        "lighter than",
+        "longer than",
+        "shorter than",
+        "distance"
+      ],
+      "solution_steps": "1. Convert all measurements into the smaller unit format if necessary. 2. Perform addition/subtraction/multiplication/division. 3. Convert back to compound units if requested."
+    },
+    "time": {
+      "display_name": "Time",
+      "rules": [
+        "Telling time must include reading minutes past/to the hour (e.g., 20 minutes to 4).",
+        "Measuring time duration must be limited to hours and minutes (within a single day context).",
+        "Include conversions between hours and minutes."
+      ],
+      "heuristics": [
+        "Timeline Strategy (Time Line Diagram)"
+      ],
+      "vocabulary": [
+        "duration",
+        "start time",
+        "end time",
+        "am",
+        "pm",
+        "hours",
+        "minutes"
+      ],
+      "solution_steps": "1. Sketch a linear timeline block. 2. Count forward or backward by hours first, then fill in remaining minutes. 3. State final clock time or total elapsed duration."
+    },
+    "area_perimeter": {
+      "display_name": "Area and Perimeter",
+      "rules": [
+        "Concepts are restricted to squares and rectangles.",
+        "Finding area must focus on counting unit square grids (1-cm grids) or simple formula applications (Length x Width).",
+        "Perimeter is found by adding up all outer boundary lengths of the shape.",
+        "Avoid complex composite shapes that require dividing shapes up into sections (which is a P4 standard)."
+      ],
+      "heuristics": [
+        "Grid Counting Method",
+        "Direct Formula Application"
+      ],
+      "vocabulary": [
+        "area",
+        "perimeter",
+        "square centimeters (sq cm)",
+        "meters",
+        "length",
+        "width",
+        "total boundary"
+      ],
+      "solution_steps": "1. Identify the given lengths of the sides. 2. For perimeter, add all four sides together. For area, multiply length by width. 3. Append correct units (cm/m for perimeter, sq cm/sq m for area)."
+    },
+    "geometry": {
+      "display_name": "Geometry",
+      "rules": [
+        "Identify angles: right angles, angles greater than a right angle, and angles smaller than a right angle.",
+        "Identify perpendicular and parallel lines on given grids or figures.",
+        "Do not require the calculation of missing degrees or angle sizes (no protractors yet)."
+      ],
+      "heuristics": [
+        "Visual Identification",
+        "Right-angle Template Check"
+      ],
+      "vocabulary": [
+        "right angle",
+        "acute angle",
+        "obtuse angle",
+        "perpendicular lines",
+        "parallel lines",
+        "intersect"
+      ],
+      "solution_steps": "1. Use visual comparison against a standard 90-degree corner. 2. Mark perpendicular lines with a square symbol. 3. Mark parallel lines with arrow symbols."
+    },
+    "data_representation": {
+      "display_name": "Data Representation (Bar Graphs)",
+      "rules": [
+        "Reading and interpreting bar graphs with scaled axes (e.g., each interval represents 2, 5, or 10 units).",
+        "Questions must require data extraction and multi-step comparison calculations from the graph."
+      ],
+      "heuristics": [
+        "Data Extraction and Interpretation Table"
+      ],
+      "vocabulary": [
+        "bar graph",
+        "scale",
+        "axis",
+        "most",
+        "least",
+        "more than",
+        "fewer than",
+        "total"
+      ],
+      "solution_steps": "1. Read and write down the exact values of each bar on the graph first. 2. Use those extracted numeric values to execute the requested addition or comparison math. 3. Write final statement."
+    }
+  }
+}

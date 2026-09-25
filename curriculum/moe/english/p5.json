@@ -1,0 +1,29 @@
+{
+  "grade": "Primary 5",
+  "subject": "English",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "synthesis_reported_speech": {
+      "display_name": "Synthesis (Direct to Indirect Reported Speech)",
+      "rules": [
+        "Convert direct speech clauses using quotation marks into indirect reported speech format.",
+        "Enforce strict shifting matrices: Tense backshift (present -> past, past -> past perfect), Pronoun adjustments (I -> he/she), and Time/Place marker flips (today -> that day, here -> there).",
+        "Do NOT introduce complex question tag reporting or multi-layered conversational adjustments yet."
+      ],
+      "component_skills": ["Applying systematic tense backshifting", "Re-mapping pronoun spatial perspectives"],
+      "vocabulary": ["said", "told", "explained", "that day", "the following day", "previous"],
+      "solution_steps": "1. Strip away the direct speech punctuation marks. 2. Move the internal verb tense one step back into the past. 3. Adjust the subjective pronouns and geographic time stamps to absolute reported settings."
+    },
+    "grammar_cloze_passages": {
+      "display_name": "Grammar Cloze (Structural Particle Matching)",
+      "rules": [
+        "Generate a cohesive 150-word educational text containing exactly 10 contextual blanks.",
+        "Provide a word box container featuring exactly 12 particles (prepositions, auxiliary verbs, pronouns, and conjunctions). No word may be reused.",
+        "Blanks must explicitly test grammar dependencies rather than content vocabulary definitions."
+      ],
+      "component_skills": ["Analyzing syntactic structural gaps", "Collocational particle tracking"],
+      "vocabulary": ["with", "for", "from", "which", "who", "although", "despite", "however"],
+      "solution_steps": "1. Scan the whole text to establish the macro tense structure. 2. Analyze the blank boundary requirements to identify parts of speech (e.g., verb modifiers or prepositions). 3. Fit words systematically from the options box, discarding used parameters."
+    }
+  }
+}

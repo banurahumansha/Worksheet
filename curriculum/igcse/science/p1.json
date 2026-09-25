@@ -1,0 +1,30 @@
+{
+  "grade": "Grade 1",
+  "subject": "Science",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "humans_and_animals": {
+      "display_name": "Humans, Animals, and Senses",
+      "rules": [
+        "Focus on naming major external body parts (head, arms, legs, eyes, ears, nose).",
+        "Link the five core senses directly to their corresponding sense organs.",
+        "Explore how humans and animals move and feed to stay alive.",
+        "Questions must be highly visual, matching basic experiential observation."
+      ],
+      "scientific_enquiry": ["Observing closely", "Identifying and classifying"],
+      "vocabulary": ["eyes", "ears", "tongue", "skin", "sight", "hearing", "taste", "touch", "smell", "senses"],
+      "solution_steps": "1. Identify the body part highlighted in the image or text. 2. Match the part to its active sense rule (e.g., ears are for hearing). 3. Write down the matching pair statement."
+    },
+    "materials_in_my_world": {
+      "display_name": "Materials in My World",
+      "rules": [
+        "Identify and name common everyday materials: wood, plastic, metal, glass, rock, and water.",
+        "Sort objects based on simple, immediate tactile properties (hard, soft, rough, smooth, shiny).",
+        "Do NOT introduce advanced properties like conductivity, magnetism, or density yet."
+      ],
+      "scientific_enquiry": ["Sorting objects", "Using simple sensory clues"],
+      "vocabulary": ["wood", "plastic", "metal", "glass", "rock", "hard", "soft", "rough", "smooth"],
+      "solution_steps": "1. Look at the object specified in the question context. 2. Determine what root material it is made from. 3. Classify its outer texture or immediate property."
+    }
+  }
+}

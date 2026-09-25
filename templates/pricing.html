@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - MapBuddyAI{% endblock %}
+
+{% block content %}
+  <h1 class="fw-bold mb-4">Pricing Plans</h1>
+
+  <div class="row justify-content-center gap-4">
+    <div class="col-md-3 border rounded p-4 shadow-sm">
+      <h3>Free</h3>
+      <p class="display-5 fw-bold mb-3">$0</p>
+      <ul class="list-unstyled mb-3 text-start">
+        <li>3 downloads/summarize only</li>
+        <li>Import Text ,doc ,json or Freepalne format</li>
+        <li>Export PNG only</li>
+        <li>Summarize Text or Doc to Editable doc format </li>
+      </ul>
+      <a href="{{ url_for('signup') }}" class="btn btn-outline-primary w-100">Get Started</a>
+    </div>
+
+    <div class="col-md-3 border rounded p-4 shadow-sm">
+      <h3>Pro Monthly</h3>
+      <p class="display-5 fw-bold mb-3">$7 / month</p>
+      <ul class="list-unstyled mb-3 text-start">
+        <li>Unlimited maps</li>
+        <li>All import/export formats</li>
+        <li>GPT-4 summaries </li>
+         <li>Summarize after Rearrange / Addnode </li>
+      </ul>
+      <a href="{{ url_for('intrest') }}" class="btn btn-primary w-100">Subscribe</a>
+    </div>
+
+    <div class="col-md-3 border rounded p-4 shadow-sm">
+      <h3>Pro Yearly</h3>
+      <p class="display-5 fw-bold mb-3">$70 / year</p>
+      <ul class="list-unstyled mb-3 text-start">
+        <li>All Pro Monthly features</li>
+        <li>Save 17%</li>
+      </ul>
+      <a href="{{ url_for('intrest') }}" class="btn btn-primary w-100">Subscribe</a>
+    </div>
+
+    <div class="col-md-3 border rounded p-4 shadow-sm">
+      <h3>Lifetime</h3>
+      <p class="display-5 fw-bold mb-3">$100 (one-time)</p>
+      <ul class="list-unstyled mb-3 text-start">
+        <li>All Pro features</li>
+        <li>Priority support</li>
+      </ul>
+      <a href="{{ url_for('intrest') }}" class="btn btn-success w-100">Buy Now</a>
+    </div>
+  </div>
+{% endblock %}

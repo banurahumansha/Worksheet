@@ -1,0 +1,31 @@
+{
+  "grade": "Grade 3",
+  "subject": "Science",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "life_processes_and_plants": {
+      "display_name": "Life Processes and Plant Growth",
+      "rules": [
+        "Name the seven core life processes common to all living things (Nutrition, Movement, Growth, Reproduction, Respiration, Excretion, Sensitivity).",
+        "Identify main parts of a flowering plant: roots, leaves, stem, and flowers.",
+        "Explain that roots anchor the plant and absorb water, while the stem transports it.",
+        "Enforce the rule that plant growth is directly affected by temperature, light, and water variables."
+      ],
+      "scientific_enquiry": ["Setting up a fair test", "Measuring changes using simple equipment"],
+      "vocabulary": ["nutrition", "reproduction", "excretion", "roots", "stem", "absorb", "transport", "temperature"],
+      "solution_steps": "1. Identify which plant structure or life process is highlighted in the setup. 2. Reference the functional rule of that part (e.g., roots absorb water). 3. Deduce how a missing variable (like light or warmth) stops growth."
+    },
+    "forces_and_magnets": {
+      "display_name": "Forces and Magnets",
+      "rules": [
+        "Define forces simply as invisible pushes and pulls that alter an object's motion or shape.",
+        "Introduce magnets, identifying magnetic vs. non-magnetic materials (e.g., iron/steel vs. wood/plastic).",
+        "Explore how magnetic poles interact: like poles repel, opposite poles attract.",
+        "Do NOT introduce unit measurements for forces (Newtons) yet."
+      ],
+      "scientific_enquiry": ["Making predictions", "Presenting data in simple tables"],
+      "vocabulary": ["push", "pull", "force", "magnet", "attract", "repel", "magnetic pole", "non-magnetic"],
+      "solution_steps": "1. Observe the directional arrows or properties of the interacting objects. 2. Apply the rule of magnetic poles (opposite poles pull together) or force behaviors. 3. Conclude with a clear predictive motion statement."
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "grade": "Grade 6",
+  "subject": "English",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "sentence_manipulation_complex": {
+      "display_name": "Sentence Synthesis and Complex Connectors",
+      "rules": [
+        "Combine complex thoughts using advanced sub-ordinators ('although', 'unless', 'whereas', 'despite').",
+        "Require conversion between direct speech and indirect reported speech patterns.",
+        "Enforce proper usage of commas separating relative clauses and introductory phrase blocks."
+      ],
+      "language_skills": ["Syntactic variance deployment", "Reported speech structural shifting"],
+      "vocabulary": ["although", "unless", "consequently", "claimed", "denied"],
+      "solution_steps": "1. Identify the logical link (contrast, condition, or result) between the text blocks. 2. Invert the clauses safely when inserting advanced sub-ordinators. 3. Adjust the tense structures and add required commas."
+    },
+    "textual_analysis_and_poetic_devices": {
+      "display_name": "Textual Analysis and Poetic Elements (Primary Checkpoint)",
+      "rules": [
+        "Provide a high-quality literary excerpt (250-350 words) displaying standard Cambridge Stage 6 Checkpoint complexity (CEFR B1 / Lexile 700L-900L).",
+        "Questions must require the student to identify figures of speech (similes, metaphors, personification, alliteration).",
+        "Include open-ended analysis asking how specific phrase choices create a particular mood or atmosphere."
+      ],
+      "language_skills": ["Identifying figurative language arrays", "Evaluating structural word impacts"],
+      "vocabulary": ["simile", "metaphor", "alliteration", "personification", "imagery", "atmosphere", "implies"],
+      "solution_steps": "1. Isolate the exact sentence or line highlighted by the question prompt. 2. Check if the text uses comparative phrases ('like' or 'as' -> simile) or gives life to objects (personification). 3. Explain how that specific language choice shapes what the reader visualizes."
+    }
+  }
+}

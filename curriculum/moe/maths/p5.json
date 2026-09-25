@@ -1,0 +1,52 @@
+{
+  "grade": "Primary 5",
+  "subject": "Mathematics",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "whole_numbers_and_decimals": {
+      "display_name": "Whole Numbers and Decimals (Up to Millions)",
+      "rules": [
+        "Numbers can extend up to 10 million.",
+        "Include multiplication and division by tens, hundreds, and thousands (e.g., x 10, x 200, / 3000).",
+        "Word problems involve complex 3 to 4-step operations."
+      ],
+      "heuristics": ["Before-and-After Scenario", "Constant Difference / Total remains unchanged"],
+      "vocabulary": ["millions", "multiply by tens", "divide by thousands", "approximate value"],
+      "solution_steps": "1. Draw a comparative before-and-after bar model. 2. Establish what remains unchanged (Total, Diff, or One Party). 3. Solve for 1 unit value."
+    },
+    "ratio": {
+      "display_name": "Ratio",
+      "rules": [
+        "Introduce the concept of ratio between two or three quantities (e.g., A:B or A:B:C).",
+        "Equivalent ratios and simplifying ratios.",
+        "Word problems connecting ratios to actual quantities."
+      ],
+      "heuristics": ["Ratio Unit Method", "Repeated Identity / Common Term alignment"],
+      "vocabulary": ["ratio", "simplest form", "units", "in the ratio of"],
+      "solution_steps": "1. Write down the initial ratio layout (e.g., A : B). 2. Make the common identity equal by finding a common multiple. 3. Find the value of 1 unit using given totals."
+    },
+    "percentage": {
+      "display_name": "Percentage",
+      "rules": [
+        "Introduce percentage as a fraction with a denominator of 100.",
+        "Converting fractions/decimals to percentages and vice versa.",
+        "Find a percentage of a quantity (e.g., 20% of $50).",
+        "Include real-life applications: GST (Goods and Services Tax), discount, and service charge."
+      ],
+      "heuristics": ["Base 100% Concept Method"],
+      "vocabulary": ["percent (%)", "GST", "discount", "original price", "sale price"],
+      "solution_steps": "1. Identify what represents the baseline 100% value. 2. Find the value of 1% or convert the percentage to a fraction. 3. Multiply to find the target discount or tax amount."
+    },
+    "rate_and_volume": {
+      "display_name": "Rate and Volume of Cubes/Cuboids",
+      "rules": [
+        "Rate concepts: cost per unit, speed/output per hour.",
+        "Volume of a cuboid formula: Length x Width x Height.",
+        "Include finding the volume of water in a rectangular tank (fractional filled states, e.g., 2/3 full)."
+      ],
+      "heuristics": ["Formula Application", "Unitary Rate Mapping"],
+      "vocabulary": ["volume", "cubic centimeters (cm³)", "capacity", "rate", "litres", "filled"],
+      "solution_steps": "1. Calculate total capacity using L x W x H. 2. Multiply by the filled fraction to find water volume. 3. Convert cm³ to litres/millilitres if required (1000 cm³ = 1 litre)."
+    }
+  }
+}

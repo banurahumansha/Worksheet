@@ -1,0 +1,53 @@
+{
+  "grade": "Grade 3",
+  "subject": "Mathematics",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "number_and_place_value": {
+      "display_name": "Number and Place Value (Up to 1000)",
+      "rules": [
+        "Numbers must be strictly limited up to 1,000.",
+        "Include estimating, rounding to the nearest 10 or 100, and multiplying/dividing whole numbers by 10.",
+        "Word problems should focus on real-world tracking using 1-step or 2-step formats."
+      ],
+      "heuristics": ["Number Line Mapping", "Place Value Counter Grids"],
+      "vocabulary": ["estimate", "round to", "nearest ten", "nearest hundred", "place value", "multiple of"],
+      "solution_steps": "1. Identify the target place value digit to be rounded or evaluated. 2. Look at the neighboring digit to the right to apply the rounding rule (5 or above rounds up). 3. Write out the finalized estimated total."
+    },
+    "addition_subtraction_multiplication": {
+      "display_name": "Addition, Subtraction, and Multiplication Core Facts",
+      "rules": [
+        "Addition and subtraction of 3-digit numbers within 1,000.",
+        "Multiplication focus shifts to the 3, 4, 6, 8, and 9 times tables.",
+        "Include multiplying a 2-digit number by a 1-digit number (e.g., 43 x 4).",
+        "Division calculations must be exact based on these tables, with zero remainders."
+      ],
+      "heuristics": ["Column Method Alignment", "Grid Multiplication Mapping"],
+      "vocabulary": ["sum", "difference", "product", "altogether", "multiply", "divide"],
+      "solution_steps": "1. Partition the calculation into column places or structural blocks. 2. Perform the target calculation from right to left. 3. Recombine or write out the precise mathematical solution line."
+    },
+    "fractions": {
+      "display_name": "Fractions (Introduction to Tenths)",
+      "rules": [
+        "Introduce finding fractions of shapes and quantities, including tenths (1/10).",
+        "Include recognizing and writing fractions from visual representations.",
+        "Include finding simple equivalent fractions using visual diagrams (e.g., 1/2 is the same as 2/4).",
+        "Do NOT include adding or subtracting fractions yet (this is introduced in Cambridge Grade 4)."
+      ],
+      "heuristics": ["Visual Bar Shading", "Fraction Wall Comparison Matrix"],
+      "vocabulary": ["fraction", "numerator", "denominator", "equivalent", "one-tenth", "unit fraction"],
+      "solution_steps": "1. Count the total shaded sections to set your numerator. 2. Count total segmented slots to find your denominator. 3. Map out the absolute fractional value statement."
+    },
+    "geometry_and_measurement": {
+      "display_name": "Geometry and Simple Measurement",
+      "rules": [
+        "Identify 2D shapes (including regular polygons up to hexagons) and 3D shapes (prisms, cylinders).",
+        "Introduce measuring and comparing lengths (m, cm, mm), mass (kg, g), and capacity (l, ml).",
+        "Read times directly to the nearest five minutes on an analog clock."
+      ],
+      "heuristics": ["Shape Trait Breakdown Matrix", "Linear Scale Reading Strategy"],
+      "vocabulary": ["polygon", "prism", "cylinder", "millimeter (mm)", "gram (g)", "milliliter (ml)", "past", "to"],
+      "solution_steps": "1. Identify the given scale markers or spatial properties of the element. 2. Extract values or match properties to the correct baseline measurement unit or geometric name. 3. Output the finalized statement."
+    }
+  }
+}

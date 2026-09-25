@@ -1,0 +1,31 @@
+{
+  "grade": "Grade 4",
+  "subject": "Mathematics",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "decimals_and_fractions": {
+      "display_name": "Decimals and Fractions",
+      "rules": [
+        "Introduce decimal notation for tenths (0.1) and hundredths (0.01).",
+        "Include linking percentages, fractions, and decimals (e.g., recognizing that 1/2 = 0.5 = 50%).",
+        "Introduce adding and subtracting fractions with the SAME denominator (e.g., 2/7 + 3/7).",
+        "Do NOT introduce addition of unrelated fractions or mixed numbers yet."
+      ],
+      "heuristics": ["Fraction Grid Model", "Place Value Number Line"],
+      "vocabulary": ["decimal", "hundredth", "tenth", "percentage", "same denominator", "mixed number"],
+      "solution_steps": "1. Verify that the denominators are identical. 2. Add or subtract the numerators while keeping the denominator constant. 3. Check and convert the scalar fraction format if required."
+    },
+    "shapes_and_measurement": {
+      "display_name": "Shapes, Angles, and Area/Perimeter",
+      "rules": [
+        "Introduce identifying acute, obtuse, and right angles.",
+        "Calculate the perimeter of rectangles and regular polygons by counting or adding side lengths.",
+        "Find the area of rectilinear shapes by counting square units (1-cm grids).",
+        "Include time duration math across minutes and hours (within 24-hour clock matrices)."
+      ],
+      "heuristics": ["Angle Corner Checklist", "Grid Area Counting Matrix", "24-Hour Time Timeline"],
+      "vocabulary": ["acute angle", "obtuse angle", "rectilinear shape", "perimeter", "area", "24-hour clock", "am", "pm"],
+      "solution_steps": "1. Isolate the target shape lengths or clock markers. 2. For perimeter, find the sum of all external lines; for area, calculate the total occupied square grids. 3. Write down the finalized measurement metric."
+    }
+  }
+}

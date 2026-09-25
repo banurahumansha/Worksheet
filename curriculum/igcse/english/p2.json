@@ -1,0 +1,30 @@
+{
+  "grade": "Grade 2",
+  "subject": "English",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "grammar_and_punctuation_basics": {
+      "display_name": "Grammar and Punctuation (Sentences and Common Parts of Speech)",
+      "rules": [
+        "Focus on core G2 word classes: common nouns, proper nouns, adjectives, and action verbs.",
+        "Introduce the basic use of commas in a simple list (e.g., 'apples, bananas and oranges').",
+        "Sentences should be simple or short compound structures joined by 'and' or 'but'.",
+        "Vocabulary must align to CEFR Pre-A1/A1 boundaries (Lexile 300L-500L)."
+      ],
+      "language_skills": ["Identifying descriptive adjectives", "Applying proper noun capitalization", "Structuring comma lists"],
+      "vocabulary": ["beautiful", "quickly", "played", "London", "Saturday", "because"],
+      "solution_steps": "1. Scan the sentence for specific names of people, days, or places to capitalize. 2. Locate lists of three or more items to place commas between them correctly. 3. Verify that the sentence ends with a clear full stop."
+    },
+    "vocabulary_and_word_building": {
+      "display_name": "Vocabulary Building (Prefixes, Suffixes, and Compounds)",
+      "rules": [
+        "Introduce basic suffixes (-er, -est, -ing, -ly) and common prefixes (un-, dis-).",
+        "Include identifying simple compound words (e.g., playground, sun-flower).",
+        "Questions should focus on transforming base words or choosing the correct word variant to complete a sentence."
+      ],
+      "language_skills": ["Morphological word adjustments", "Contextual word selection"],
+      "vocabulary": ["unhappy", "biggest", "slowly", "dislike", "playful", "inside"],
+      "solution_steps": "1. Look at the base word provided in the prompt brackets. 2. Analyze the sentence context to determine if it requires a comparative description or an opposite meaning. 3. Attach the correct prefix or suffix cleanly."
+    }
+  }
+}

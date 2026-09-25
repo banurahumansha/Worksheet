@@ -1,0 +1,29 @@
+{
+  "grade": "Primary 4",
+  "subject": "English",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "synthesis_transformation": {
+      "display_name": "Synthesis and Transformation (Intermediate)",
+      "rules": [
+        "Introduce structural connectors: 'either... or', 'neither... nor', 'both... and', and basic adverbs like 'when' or 'since'.",
+        "Require slight changes in sentence tense alignment or word ordering upon joining.",
+        "Ensure the final combined output text is a singular grammatically sound compound-complex sentence."
+      ],
+      "component_skills": ["Correlative conjunction mapping", "Subject-verb alignment adjustment"],
+      "vocabulary": ["either... or", "neither... nor", "both... and", "since", "unless"],
+      "solution_steps": "1. Identify the negative or positive nature of the two thoughts. 2. Align the verb tense to match the subject closest to the verb when using correlative structures. 3. Re-read to confirm the original message is exactly preserved."
+    },
+    "editing_spelling_grammar": {
+      "display_name": "Editing for Spelling and Grammar",
+      "rules": [
+        "Provide a short passage of 100-120 words containing underlined or boxed systematic errors.",
+        "Isolate exactly 6 errors: 3 spelling errors (phonetic slips or common mix-ups) and 3 grammar errors (wrong tense, incorrect prepositions, or faulty pluralization).",
+        "The passage context must fit mid-primary benchmarks (Lexile 600L-800L)."
+      ],
+      "component_skills": ["Identifying structural grammar slip-ups", "Correcting age-appropriate orthography"],
+      "vocabulary": ["received", "disappointed", "necessary", "government", "preposition", "tense"],
+      "solution_steps": "1. Isolate the marked word context inside its sentence block. 2. If it is a grammar marker, cross-reference it against the historical passage timeline or surrounding nouns. 3. If it is a spelling marker, rewrite the root word variant correctly."
+    }
+  }
+}

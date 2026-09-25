@@ -1,0 +1,308 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapBuddyAI – Smarter Mind Maps</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- AOS Library for Scroll Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <style>
+      /* Fade-in-up animation for page load */
+      @keyframes fadeInUp {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fadeInUp { animation: fadeInUp 1s ease-out forwards; }
+
+      /* Floating logo */
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      .logo-float { animation: float 3s ease-in-out infinite; }
+
+      /* Animated gradient background */
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      .bg-animated {
+        background: linear-gradient(135deg, #6f42c1, #20c997, #6f42c1);
+        background-size: 300% 300%;
+        animation: gradientShift 15s ease infinite;
+      }
+
+      /* Hover micro-interactions */
+      .btn-hover:hover { transform: scale(1.05); transition: transform 0.3s ease; }
+      .card-hover:hover { transform: translateY(-8px); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    </style>
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+
+  <!-- Hero Section -->
+  <section class="bg-animated text-white relative">
+    <div class="max-w-7xl mx-auto px-6 py-16 md:py-28 text-center">
+
+      <canvas id="mindmapCanvas" class="absolute inset-0"></canvas>
+
+      <!-- Logo + Headline Together -->
+      <div class="inline-flex items-center gap-4 justify-center animate-fadeInUp">
+        <img src="{{ url_for('static', filename='images/logo1.png') }}"
+          alt="MapBuddyAI Logo"
+          class="w-20 h-20 md:w-24 md:h-24">
+        <h1 class="text-4xl md:text-6xl font-bold leading-tight">
+          <span class="text-amber-300 font-extrabold">MapBuddyAI</span><br>
+          Turn lesson notes into mind maps & teaching cards
+        </h1>
+      </div>
+
+      <p class="mt-6 text-lg md:text-xl font-medium animate-fadeInUp text-amber-100">
+        Upload your lesson plans, textbooks, or notes — MapBuddyAI transforms them into structured, visual mind maps that make teaching easier and learning faster.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="mt-8 flex justify-center gap-4 animate-fadeInUp">
+        <a href="#get-started" class="bg-amber-400 text-indigo-900 font-semibold px-6 py-3 rounded-lg shadow-md hover:bg-amber-300 transition btn-hover">
+          📚 Start Teaching Smarter
+        </a>
+        <a href="#demo" class="border border-white/70 px-6 py-3 rounded-lg hover:bg-white hover:text-indigo-700 transition btn-hover">
+          See Demo
+        </a>
+               <p class="mt-4 text-white/80 text-center">
+    Already have an account?
+    <a href="{{ url_for('login') }}" class="underline font-semibold text-xl md:text-2xl text-yellow-400 hover:text-green-300 transition">
+      Login
+    </a>
+  </p>
+
+      </div>
+
+
+    </div>
+  </section>
+  <!-- Benefits Section -->
+  <section class="max-w-7xl mx-auto px-6 py-20">
+    <h2 class="text-3xl font-bold text-center mb-12">Why Teachers Choose MapBuddyAI</h2>
+    <div class="grid gap-8 md:grid-cols-3 text-center">
+      <div data-aos="fade-up" class="p-6 bg-gray-50 rounded-2xl shadow-md card-hover">
+        <div class="text-indigo-600 text-5xl mb-4">⚡</div>
+        <h3 class="text-xl font-semibold mb-2">Instant Lesson Prep</h3>
+        <p>Upload lesson notes, worksheets, or textbooks and get structured mind maps in seconds.</p>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="100" class="p-6 bg-gray-50 rounded-2xl shadow-md card-hover">
+        <div class="text-indigo-600 text-5xl mb-4">🎨</div>
+        <h3 class="text-xl font-semibold mb-2">Customizable for Classrooms</h3>
+        <p>Edit nodes, change layouts, and adapt visuals to match your teaching style.</p>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="200" class="p-6 bg-gray-50 rounded-2xl shadow-md card-hover">
+        <div class="text-indigo-600 text-5xl mb-4">👩‍🏫</div>
+        <h3 class="text-xl font-semibold mb-2">Engage Your Students</h3>
+        <p>Make lessons interactive and easier to understand with visual maps and summary cards.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="bg-gray-100 py-20">
+    <div class="max-w-5xl mx-auto px-6">
+      <h2 class="text-3xl font-bold text-center mb-12">Key Features for Teachers</h2>
+      <div class="grid md:grid-cols-2 gap-8">
+        <ul data-aos="fade-right" class="space-y-4">
+          <li>📄 <strong>Upload Lesson Material:</strong> Import PDFs, Word docs, or text notes.</li>
+          <li>🧠 <strong>AI-Powered Summaries:</strong> Convert long content into concise, student-ready cards.</li>
+          <li>🗺️ <strong>Visual Mind Map Creation:</strong> Organize lessons visually for easy comprehension.</li>
+        </ul>
+        <ul data-aos="fade-left" class="space-y-4">
+          <li>✏️ <strong>Edit & Customize:</strong> Rearrange nodes, add icons, or highlight key points.</li>
+          <li>💾 <strong>Export & Share:</strong> Save as PDF, Word, image, or JSON for classroom use.</li>
+          <li>🎨 <strong>Multiple Layouts & Themes:</strong> Match maps to your teaching style and classroom needs.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo Videos Section -->
+  <section id="demo" class="bg-gray-100 py-20 text-center">
+    <h3 class="text-3xl font-bold mb-12">See MapBuddyAI in Action for Teachers</h3>
+    <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-10">
+
+      <!-- Lesson Notes → Mindmap -->
+      <div class="rounded-xl shadow-lg bg-white p-4">
+        <h4 class="text-xl font-semibold mb-2">Lesson Notes → Mindmap</h4>
+        <p class="text-gray-600 mb-4">Watch how a teacher uploads lesson material and instantly generates a structured, interactive mind map ready for class use.</p>
+        <div class="aspect-video w-full rounded-lg overflow-hidden">
+          <iframe class="w-full h-full"
+            src="https://www.youtube.com/embed/qFB2cjbxXCc?rel=0"
+            title="Lesson Notes to Mindmap"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+
+      <!-- Summary Cards for Students -->
+      <div class="rounded-xl shadow-lg bg-white p-4">
+        <h4 class="text-xl font-semibold mb-2">Summary Cards for Students</h4>
+        <p class="text-gray-600 mb-4">Turn complex lesson content into concise, easy-to-digest cards for quick student revision.</p>
+        <div class="aspect-video w-full rounded-lg overflow-hidden">
+          <iframe class="w-full h-full"
+            src="https://www.youtube.com/embed/iHq-lniaSDo?rel=0"
+            title="Summary Cards"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+
+      <!-- Topics → Lesson Maps -->
+      <div class="rounded-xl shadow-lg bg-white p-4">
+        <h4 class="text-xl font-semibold mb-2">Topics → Lesson Maps</h4>
+        <p class="text-gray-600 mb-4">Enter a topic and see how the AI expands it into a structured mind map for lesson planning.</p>
+        <div class="aspect-video w-full rounded-lg overflow-hidden">
+          <iframe class="w-full h-full"
+            src="https://www.youtube.com/embed/hmLuM9k5bAY?rel=0"
+            title="Topics to Lesson Maps"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+
+      <!-- Build Lesson Map from Scratch -->
+      <div class="rounded-xl shadow-lg bg-white p-4">
+        <h4 class="text-xl font-semibold mb-2">Build Lesson Map from Scratch</h4>
+        <p class="text-gray-600 mb-4">Start with a blank canvas and create custom lesson maps tailored to your classroom needs.</p>
+        <div class="aspect-video w-full rounded-lg overflow-hidden">
+          <iframe class="w-full h-full"
+            src="https://www.youtube.com/embed/bOKInxtHjqg?rel=0"
+            title="Create Lesson Map from Scratch"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+    <!-- Testimonials Section -->
+    <section class="max-w-7xl mx-auto px-6 py-20 bg-white">
+      <h2 class="text-3xl font-bold text-center mb-12">Loved by Early Users</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div data-aos="fade-up" data-aos-delay="100" class="p-6 rounded-xl shadow card-hover">
+          <p>“MapBuddyAI changed the way I take notes. I can now study faster and smarter.”</p>
+          <h4 class="mt-4 font-semibold">— Aishwarya, Student</h4>
+        </div>
+        <div data-aos="fade-up" data-aos-delay="200" class="p-6 rounded-xl shadow card-hover">
+          <p>“Finally, a tool that makes brainstorming fun and productive.”</p>
+          <h4 class="mt-4 font-semibold">— Rajesh, Teacher</h4>
+        </div>
+        <div data-aos="fade-up" data-aos-delay="300" class="p-6 rounded-xl shadow card-hover">
+          <p>“I use it daily for content planning. It saves me hours every week.”</p>
+          <h4 class="mt-4 font-semibold">— Meera, Content Creator</h4>
+        </div>
+      </div>
+    </section>
+
+  <!-- Pricing Section -->
+  <section id="get-started" class="bg-indigo-50 py-20 text-center">
+    <h2 class="text-3xl font-bold mb-6">Simple Pricing for Teachers</h2>
+    <p class="mb-12">Start free and see how MapBuddyAI can save you hours preparing lessons.</p>
+
+    <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto px-6">
+
+      <!-- Free Plan -->
+      <div data-aos="fade-up" class="bg-white p-8 rounded-2xl shadow-md card-hover">
+        <h3 class="text-2xl font-bold mb-4">Free</h3>
+        <p class="mb-6">Create up to 3 lesson maps and summary cards — perfect to try MapBuddyAI without commitment.</p>
+        <p class="text-3xl font-bold mb-6">$0</p>
+        <a href="{{ url_for('signup') }}" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-500 transition btn-hover">
+          Start Free
+        </a>
+      </div>
+
+      <!-- Pro Plan -->
+      <div data-aos="fade-up" data-aos-delay="100" class="bg-indigo-600 text-white p-8 rounded-2xl shadow-md card-hover">
+        <h3 class="text-2xl font-bold mb-4">Pro</h3>
+        <p class="mb-6">Unlimited lesson maps and exports — save hours every week and keep your students engaged with structured visuals.</p>
+        <p class="text-3xl font-bold mb-6">$7 / mo</p>
+        <a href="{{ url_for('intrest') }}" class="bg-amber-400 text-indigo-900 font-semibold px-6 py-3 rounded-lg hover:bg-amber-300 transition btn-hover">
+          Upgrade Now
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+        <script>
+  const canvas = document.getElementById("mindmapCanvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let nodes = [];
+  const colors = ["#f5c518", "#ffffff", "#90a4ae"]; // Yellow, White, Soft gray-blue
+
+  for (let i = 0; i < 30; i++) {
+    nodes.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 3 + 2,
+      dx: (Math.random() - 0.5) * 0.6,
+      dy: (Math.random() - 0.5) * 0.6,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    nodes.forEach((node, i) => {
+      // Draw node
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+      ctx.fillStyle = node.color;
+      ctx.fill();
+
+      // Draw connecting lines
+      nodes.forEach((otherNode, j) => {
+        if (i !== j) {
+          const dist = Math.hypot(node.x - otherNode.x, node.y - otherNode.y);
+          if (dist < 150) {
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(node.x, node.y);
+            ctx.lineTo(otherNode.x, otherNode.y);
+            ctx.stroke();
+          }
+        }
+      });
+
+      // Move node
+      node.x += node.dx;
+      node.y += node.dy;
+
+      if (node.x < 0 || node.x > canvas.width) node.dx *= -1;
+      if (node.y < 0 || node.y > canvas.height) node.dy *= -1;
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+            AOS.init({ duration: 1000, once: true });
+
+  </script>
+
+  </body>
+  </html>

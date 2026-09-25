@@ -1,0 +1,30 @@
+{
+  "grade": "Grade 1",
+  "subject": "English",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "phonics_and_word_recognition": {
+      "display_name": "Phonics and Early Word Recognition",
+      "rules": [
+        "Focus on short vowel sounds (CVC words like cat, pin, hop) and simple consonant blends (e.g., st-, bl-).",
+        "Sentences must be short, single-clause structures (maximum 6 words).",
+        "Vocabulary must align strictly to CEFR Pre-A1 / early Lexile bands (up to 200L).",
+        "Questions must use matching, circling, or simple fill-in-the-blank with pictorial prompts."
+      ],
+      "language_skills": ["Phonemic awareness", "Grapheme-phoneme matching"],
+      "vocabulary": ["mat", "ship", "frog", "stop", "sing", "with", "this"],
+      "solution_steps": "1. Look at the visual object or sound block given. 2. Say the individual letter sounds to blend them together. 3. Select the correct letter combination that matches the spoken word."
+    },
+    "simple_sentence_building": {
+      "display_name": "Simple Sentence Construction",
+      "rules": [
+        "Include capital letters at the beginning of sentences and full stops (.) or question marks (?) at the end.",
+        "Provide scrambled 3 to 4-word sentences for the student to reorder into a logical statement.",
+        "Do NOT introduce compound sentences or commas yet."
+      ],
+      "language_skills": ["Basic sentence mechanics", "Word order tracking"],
+      "vocabulary": ["The", "is", "big", "running", "Where", "am", "I"],
+      "solution_steps": "1. Find the word starting with a capital letter to place at the beginning. 2. Look for the word attached to the punctuation mark to place at the very end. 3. Arrange the middle words so the action makes sense."
+    }
+  }
+}

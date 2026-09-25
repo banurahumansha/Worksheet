@@ -1,0 +1,42 @@
+{
+  "grade": "Primary 6",
+  "subject": "Science",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "interactions_forces": {
+      "display_name": "Interactions (Forces)",
+      "rules": [
+        "Identify different types of forces: Gravitational force, Frictional force, Elastic spring force, and Magnetic force.",
+        "Understand the effects of a force: change shape, change speed, change direction, or stop a moving object.",
+        "Test factors affecting friction (roughness of surface) and spring extensions.",
+        "Avoid equations like F=ma or numerical hooke's law constants. Keep calculations limited to basic additive spring lengths."
+      ],
+      "process_skills": ["Interpreting line graphs of spring extension", "Experimental variable analysis", "Explaining motion changes"],
+      "vocabulary": ["gravitational force", "frictional force", "elastic spring force", "magnetic force", "oppose motion", "exert", "extension", "original length"],
+      "solution_steps": "1. Identify the active forces acting on the object in the scenario. 2. Describe the direction and magnitude effect of the dominant force. 3. Explain how this force alters the object's physical state or path of motion."
+    },
+    "energy_forms_and_conversions": {
+      "display_name": "Energy (Forms and Conversions)",
+      "rules": [
+        "Recognize different forms of energy: Kinetic energy, Potential energy (gravitational, chemical, elastic), Light energy, Sound energy, and Heat energy.",
+        "Trace energy conversion pathways in everyday situations (e.g., dropping a ball, a winding toy car, a battery-operated flashlight).",
+        "Apply the Law of Conservation of Energy (Energy cannot be created or destroyed, only converted)."
+      ],
+      "process_skills": ["Constructing energy flowcharts", "Analyzing rollercoaster/pendulum conversion points"],
+      "vocabulary": ["kinetic energy", "gravitational potential energy", "chemical potential energy", "elastic potential energy", "energy conversion", "conservation of energy"],
+      "solution_steps": "1. Identify the starting source of energy stored in the system. 2. Trace the sequence of actions occurring step-by-step. 3. Map out the conversion path explicitly using arrow notation (A -> B + C)."
+    },
+    "interactions_environment": {
+      "display_name": "Interactions (Ecology and Environment)",
+      "rules": [
+        "Understand habitats, populations, and communities.",
+        "Analyze food chains and complex food webs.",
+        "Predict the impact of population changes on an ecosystem (e.g., what happens if organism X decreases).",
+        "Include structural and behavioral adaptations of organisms for survival (obtaining food, protection, coping with environment)."
+      ],
+      "process_skills": ["Predicting population trends from food webs", "Classifying structural vs behavioral adaptations"],
+      "vocabulary": ["habitat", "population", "community", "food web", "producer", "consumer", "predator", "prey", "structural adaptation", "behavioral adaptation"],
+      "solution_steps": "1. Trace the direction of energy flow (arrows pointing from food to consumer) in the food web matrix. 2. Isolate the direct and indirect connections to the target organism. 3. Formulate a multi-step ecological impact conclusion."
+    }
+  }
+}

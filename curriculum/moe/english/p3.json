@@ -1,0 +1,43 @@
+{
+  "grade": "Primary 3",
+  "subject": "English",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "grammar_discrete": {
+      "display_name": "Grammar (Discrete MCQ Items)",
+      "rules": [
+        "Focus on core P3 grammar items: Subject-Verb Agreement, Past Continuous Tense, and Pronouns.",
+        "Keep sentence structures simple or compound. Do not use complex conditional structures (e.g., No 'Had I known...').",
+        "Vocabulary used in options must be age-appropriate (Lexile range 500L-700L).",
+        "Provide exactly 4 options per question with 1 clearly indisputable correct answer."
+      ],
+      "component_skills": ["Identifying tense consistency", "Applying plural/singular rules"],
+      "vocabulary": ["neither... nor", "either... or", "everyone", "nobody", "while", "during"],
+      "solution_steps": "1. Identify the subject of the sentence to determine if it is singular or plural. 2. Identify the time marker to establish the correct tense. 3. Select the option that matches both grammatical criteria."
+    },
+    "synthesis_and_transformation": {
+      "display_name": "Sentence Synthesis and Transformation",
+      "rules": [
+        "Combine two simple sentences into one cohesive sentence using a designated connector.",
+        "Connectors must be strictly limited to P3 standards: 'and', 'but', 'so', 'because', 'when', 'if'.",
+        "Do NOT require changing active voice to passive voice (this is a P4/P5 standard).",
+        "The meaning of the original sentences must remain completely unchanged."
+      ],
+      "component_skills": ["Logical connector application", "Punctuation adjustment"],
+      "vocabulary": ["because", "although", "but", "however", "therefore"],
+      "solution_steps": "1. Identify the logical relationship between the two clauses (e.g., cause and effect). 2. Insert the specified connector while removing redundant nouns or pronouns. 3. Adjust punctuation and verify that the sentence flows naturally."
+    },
+    "comprehension_cloze": {
+      "display_name": "Comprehension Cloze",
+      "rules": [
+        "Generate a continuous narrative passage between 120 to 150 words.",
+        "Provide exactly 5 blanks to be filled with contextual words.",
+        "Blanks must target a balanced mix: 2 nouns/verbs, 2 prepositions/pronouns, and 1 connector.",
+        "The passage topic must relate to common primary school experiences (e.g., recess time, a trip to the zoo, helping a friend)."
+      ],
+      "component_skills": ["Contextual reading clues", "Collocation matching"],
+      "vocabulary": ["suddenly", "realised", "decided", "approached", "grateful"],
+      "solution_steps": "1. Read the entire passage once to understand the overall plot and timeline. 2. Analyze the words immediately before and after the blank to deduce the part of speech required. 3. Fill in the blank and re-read the sentence to ensure absolute contextual and grammatical fit."
+    }
+  }
+}

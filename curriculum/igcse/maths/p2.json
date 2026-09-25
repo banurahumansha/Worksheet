@@ -1,0 +1,41 @@
+{
+  "grade": "Grade 2",
+  "subject": "Mathematics",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "place_value_and_estimation": {
+      "display_name": "Place Value and Estimation (Up to 100)",
+      "rules": [
+        "Numbers must be strictly within 100.",
+        "Introduce partitioning two-digit numbers into standard tens and ones.",
+        "Include estimating small quantities of objects and using inequality symbols (<, >, =).",
+        "Addition and subtraction within 100 (without complex vertical regrouping matrices)."
+      ],
+      "heuristics": ["Hundreds Chart Grid", "Base-10 Block Breakdown"],
+      "vocabulary": ["tens", "ones", "estimate", "greater than", "less than", "equal to", "partition"],
+      "solution_steps": "1. Split the double-digit values into distinct tens and ones blocks. 2. Execute the numerical combining or subtraction step. 3. Re-combine the final tens and ones elements into a standard number statement."
+    },
+    "multiplication_and_sharing": {
+      "display_name": "Multiplication and Sharing (Tables of 2, 5, 10)",
+      "rules": [
+        "Limit operations strictly to the 2, 5, and 10 times tables.",
+        "Introduce division strictly as an exercise in equal sharing or grouping (no remainders allowed).",
+        "Word problems must feature concrete grouping scenarios (e.g., putting toys into bags)."
+      ],
+      "heuristics": ["Equal Groups Array Model", "Repeated Addition Timeline"],
+      "vocabulary": ["groups of", "shared between", "each", "double", "halve", "total"],
+      "solution_steps": "1. Identify the number of groups or target sets specified. 2. Multiply or divide using the basic 2, 5, or 10 number facts. 3. State the total items or size of each shared bundle clearly."
+    },
+    "fractions_introduction": {
+      "display_name": "Fractions (Halves and Quarters)",
+      "rules": [
+        "Focus strictly on finding half (1/2) and one-quarter (1/4) of geometric shapes or small groups of items.",
+        "Include recognizing that two halves or four quarters make a single unit whole.",
+        "Do NOT introduce fraction symbols for other denominators or mathematical operations."
+      ],
+      "heuristics": ["Visual Section Shading Matrix", "Fair-Share Distribution Mapping"],
+      "vocabulary": ["half", "quarter", "equal parts", "whole", "fraction"],
+      "solution_steps": "1. Count the total equal partition spaces visually. 2. Ensure the distribution group is shared evenly into 2 parts (halves) or 4 parts (quarters). 3. Identify the fractional component slice value."
+    }
+  }
+}

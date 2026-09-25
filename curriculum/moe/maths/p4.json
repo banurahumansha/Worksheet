@@ -1,0 +1,52 @@
+{
+  "grade": "Primary 4",
+  "subject": "Mathematics",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "whole_numbers": {
+      "display_name": "Whole Numbers (Up to 100,000)",
+      "rules": [
+        "Numbers must be strictly within 100,000.",
+        "Include concepts of Factors and Multiples.",
+        "Include Prime and Composite numbers within 100.",
+        "Word problems can involve up to 3 steps."
+      ],
+      "heuristics": ["Comparison Model", "Find the Pattern", "Supposition / Guess and Check"],
+      "vocabulary": ["factor", "multiple", "common factor", "highest common factor", "lowest common multiple"],
+      "solution_steps": "1. List factors or multiples systematically. 2. Identify common elements. 3. Execute the multi-step calculation."
+    },
+    "fractions": {
+      "display_name": "Fractions (Advanced)",
+      "rules": [
+        "Denominators MUST be 12 or less.",
+        "Addition and subtraction of UNRELATED fractions is allowed (e.g., 1/3 + 1/4).",
+        "The total sum CAN exceed 1 whole.",
+        "Final answers must convert improper fractions to mixed numbers in their simplest form."
+      ],
+      "heuristics": ["Remainder Model", "Fraction of a Set Model"],
+      "vocabulary": ["improper fraction", "mixed number", "remainder", "balance", "simplest form"],
+      "solution_steps": "1. Find the Least Common Multiple (LCM) to create a common denominator. 2. Add or subtract the numerators. 3. Convert improper fractions to mixed numbers and simplify."
+    },
+    "decimals": {
+      "display_name": "Decimals",
+      "rules": [
+        "Up to 3 decimal places (tenths, hundredths, thousandths).",
+        "Include expressing fractions as decimals and vice versa.",
+        "Addition, subtraction, multiplication, and division of decimals (multiplying/dividing by a 1-digit whole number)."
+      ],
+      "heuristics": ["Part-Whole Model", "Comparison Model"],
+      "vocabulary": ["decimal point", "tenths", "hundredths", "thousandths", "round off"],
+      "solution_steps": "1. Align decimal points vertically. 2. Add, subtract, multiply, or divide as whole numbers. 3. Place the decimal point strictly in line with the inputs."
+    },
+    "area_perimeter": {
+      "display_name": "Area and Perimeter (Composite Shapes)",
+      "rules": [
+        "Find the area/perimeter of composite shapes made of rectangles and squares.",
+        "Find the unknown side of a rectangle given its area or perimeter."
+      ],
+      "heuristics": ["Dividing/Splitting Method", "Cut-and-Paste Method"],
+      "vocabulary": ["composite shape", "length", "width", "unknown side", "area", "perimeter"],
+      "solution_steps": "1. Split the composite shape into distinct squares or rectangles. 2. Find the missing side lengths by looking at parallel edges. 3. Calculate individual areas and add them up."
+    }
+  }
+}

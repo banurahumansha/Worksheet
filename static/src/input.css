@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom colors for gradients */
+@layer base {
+  :root {
+    --color-purple-600: #6f42c1;
+    --color-green-400: #20c997;
+    --color-amber-100: #FFE8A1;
+    --color-amber-300: #FFD54F;
+    --color-amber-400: #FFC107;
+    --color-indigo-600: #4F46E5;
+    --color-indigo-700: #4338CA;
+  }
+}
+
+/* Custom utilities */
+@layer utilities {
+  /* Fade-in-up animation */
+  .animate-fadeInUp {
+    animation: fadeInUp 1s ease-out forwards;
+  }
+
+  /* Floating logo */
+  .logo-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Animated gradient background */
+  .bg-animated {
+    background: linear-gradient(135deg, var(--color-purple-600), var(--color-green-400), var(--color-purple-600));
+    background-size: 300% 300%;
+    animation: gradientShift 15s ease infinite;
+  }
+
+  /* Hover micro-interactions */
+  .btn-hover:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-8px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+}
+
+/* Keyframes */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

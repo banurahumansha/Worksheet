@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Your Email - MapBuddyAI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column justify-content-center align-items-center vh-100">
+  <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
+    <h3 class="mb-3 text-primary">Verify Your Email</h3>
+    <p>
+      Thank you for signing up! Please check your email inbox for a verification link.
+      Click the link to activate your account and start using MapBuddy.
+    </p>
+    <p class="text-muted small">
+      If you don't see the email, check your spam/junk folder.
+    </p>
+    <a href="{{ url_for('login') }}" class="btn btn-primary mt-3 w-100">Back to Login</a>
+  </div>
+</div>
+{% endblock %}

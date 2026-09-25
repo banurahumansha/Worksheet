@@ -1,0 +1,41 @@
+{
+  "grade": "Grade 6",
+  "subject": "Mathematics",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "fractions_decimals_percentages": {
+      "display_name": "Fractions, Decimals, and Percentages (Stage 6)",
+      "rules": [
+        "Include adding and subtracting fractions with different, unrelated denominators using common denominators.",
+        "Introduce multiplying a proper fraction by a whole number (e.g., 2/3 x 6).",
+        "Convert improper fractions to mixed numbers and find percentages of quantities.",
+        "Recognize equivalence between fractions, decimals, and percentages up to simple recurring variants (e.g., 1/3 = 33.3%)."
+      ],
+      "heuristics": ["Lowest Common Denominator Matrix", "Unitary Bar Model Mapping"],
+      "vocabulary": ["unrelated denominators", "mixed number", "improper fraction", "percentage change", "convert"],
+      "solution_steps": "1. Convert any mixed numbers to improper formats or find the lowest common multiple for denominators. 2. Calculate the core addition, subtraction, or multiplication string. 3. Simplify the final result and convert back to a mixed number if the value > 1."
+    },
+    "ratio_and_proportion": {
+      "display_name": "Ratio and Proportion",
+      "rules": [
+        "Introduce the concept of ratio and direct proportion using the ':' symbol.",
+        "Include solving simple word problems involving ratios of two quantities (e.g., a recipe requires flour and sugar in the ratio 3:2).",
+        "Do NOT introduce 3-part ratios (A:B:C) or complex changing ratio problems (which is an MOE standard)."
+      ],
+      "heuristics": ["Proportional Unitary Blocks"],
+      "vocabulary": ["ratio", "proportion", "for every", "share", "parts"],
+      "solution_steps": "1. Write down the given ratio parts clearly. 2. Divide the known quantity by its respective number of parts to find the value of 1 part. 3. Multiply that 1-part value by the target variable's number of parts."
+    },
+    "geometry_angles_coordinates": {
+      "display_name": "Angles, 3D Shapes, and Four-Quadrant Coordinates",
+      "rules": [
+        "Introduce reading and plotting coordinates across all four quadrants (incorporating negative x and y axes).",
+        "Calculate missing angles on a straight line (sum to 180°) and around a point (sum to 360°).",
+        "Identify net designs of basic 3D shapes (cubes, cuboids, triangular prisms)."
+      ],
+      "heuristics": ["Four-Quadrant Axis Tracking", "Angle Complementary Calculation"],
+      "vocabulary": ["four quadrants", "negative coordinates", "angles on a straight line", "angles around a point", "3D net"],
+      "solution_steps": "1. Isolate the target geometric law (e.g., subtracting known angles from 180° for a straight line). 2. Complete the arithmetic step. 3. Write down the finalized missing angle or coordinate orientation."
+    }
+  }
+}

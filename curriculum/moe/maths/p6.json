@@ -1,0 +1,53 @@
+{
+  "grade": "Primary 6",
+  "subject": "Mathematics",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "algebra": {
+      "display_name": "Algebra (Introduction)",
+      "rules": [
+        "Use a single letter variable (e.g., x, y, m, n) to represent an unknown quantity.",
+        "Include writing algebraic expressions for simple 1-step or 2-step situations (e.g., 3x + 5, (y-2)/4).",
+        "Include evaluation of algebraic expressions by substituting whole number values for the variable.",
+        "Do NOT include quadratic equations, simultaneous equations, or negative algebraic values (Secondary school standard)."
+      ],
+      "heuristics": ["Algebraic Substitution Method", "Simplifying Expressions"],
+      "vocabulary": ["algebraic expression", "in terms of", "simplify", "substitute", "value of the expression"],
+      "solution_steps": "1. Set up the expression using the given variable letter. 2. Substitute the given numeric value into the variable slot. 3. Execute basic order of operations (BODMAS) to calculate the final scalar value."
+    },
+    "speed": {
+      "display_name": "Speed",
+      "rules": [
+        "Concepts strictly limited to: Speed, Distance, and Time.",
+        "Units used: km/h, m/min, m/s.",
+        "Include calculating average speed for a journey with multiple parts (Total Distance / Total Time).",
+        "Word problems can involve objects moving towards each other (closing speed) or moving away from each other."
+      ],
+      "heuristics": ["Speed-Distance-Time Triangle Model", "Journey Timeline Diagram"],
+      "vocabulary": ["speed", "average speed", "distance", "time taken", "meeting point", "stationary"],
+      "solution_steps": "1. Identify and list the given components for each part of the journey. 2. Calculate the missing total distance and total time taken explicitly. 3. Apply the average speed formula (Total Distance divided by Total Time)."
+    },
+    "circles": {
+      "display_name": "Circles (Area and Circumference)",
+      "rules": [
+        "Formulas required: Circumference = 2 * pi * r (or pi * d), Area = pi * r * r.",
+        "The value of Pi (π) must be strictly designated in the question as either 22/7, 3.14, or leaving the answer 'in terms of pi'.",
+        "Limit composite shapes to combinations of squares, rectangles, triangles, quadrants, and semicircles."
+      ],
+      "heuristics": ["Cut-and-Paste Shaded Area Method", "Formula Decoupling Strategy"],
+      "vocabulary": ["radius", "diameter", "circumference", "perimeter of shaded figure", "area of shaded region", "semicircle", "quadrant", "pi"],
+      "solution_steps": "1. Identify the radii and diameters of the circular parts from the given boundaries. 2. Calculate the perimeter or area of the individual standard parts using the requested Pi value. 3. Add or subtract areas/perimeters to isolate the specific shaded target region."
+    },
+    "pie_charts": {
+      "display_name": "Pie Charts",
+      "rules": [
+        "Reading and interpreting data from pie charts.",
+        "Express data points as fractions, percentages, or exact numerical values relative to the whole chart.",
+        "Word problems require cross-referencing information to find missing quantities or totals (e.g., if the 25% quadrant represents 10 apples, find the total fruits)."
+      ],
+      "heuristics": ["Fractional/Percentage Proportional Mapping"],
+      "vocabulary": ["pie chart", "fraction of the total", "percentage", "angle (conceptually as a fraction of a circle, e.g., 90 degrees is 1/4)"],
+      "solution_steps": "1. Identify the value or relationship of a known sector of the pie chart. 2. Set up a unitary method equation (e.g., 20% = 40 items, so 1% = 2 items). 3. Calculate the value of the missing or total sectors requested."
+    }
+  }
+}

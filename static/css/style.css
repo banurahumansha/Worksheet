@@ -1,0 +1,514 @@
+html, body {
+  height: 100%;
+  width: 100%;
+    margin: 0;
+  padding: 0;
+}
+.hidden {
+  display: none !important;
+}
+
+/* Shrink sidebar width */
+#sidebar {
+  width: 180px !important;
+  max-width: 180px !important;
+}
+
+/* Ensure body pushes content accordingly */
+.offcanvas-start {
+  width: 180px;
+}
+.hidden-sidebar {
+  display: none !important;
+}
+/* Sidebar animation */
+#sideControls {
+  transition: transform 0.3s ease, width 0.3s ease, padding 0.3s ease;
+  overflow-x: visible;
+  overflow-y: auto;
+  position: fixed; /* fixed for fullscreen scrolling */
+  z-index: 1050;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 160px;
+  max-height: 85vh;
+  padding: 1rem;
+  border-radius: 0 10px 10px 0;
+  background-color: #f8f9fa;
+}
+
+/* Hidden / toggle */
+.hidden-sidebar {
+  transform: translateX(-100%);
+}
+
+/* Collapsed: icons only */
+#sideControls.collapsed {
+  width: 50px;
+  padding: 0.5rem 0.2rem;
+}
+#sideControls.collapsed .btn span {
+  display: none; /* hide text in buttons */
+}
+
+/* Button styling */
+#sideControls .btn {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 0.5rem;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ffc107;
+  color: #333;
+}
+#sideControls .btn:hover {
+  background-color: #ffc107;
+  color: #fff;
+}
+
+/* Dropdown inside toolbar */
+#sideControls .dropdown-menu {
+  z-index: 1060; /* above toolbar */
+}
+
+
+#nodeInfoModal .modal-dialog {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  margin: 0;
+  width: 400px;
+  max-width: 95vw;
+  transform: none !important;
+  z-index: 1055; /* above most content */
+  cursor: grab;
+}
+
+#nodeInfoModal .modal-content {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Optional: Add transition for smoothness */
+#nodeInfoModal {
+  transition: opacity 0.3s ease-in-out;
+}
+
+
+/* Spinner overlay positioned absolutely within #cy */
+    .spinner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+  opacity: 0;
+}
+
+
+/* Show and hide states */
+.spinner-overlay.show {
+  opacity: 1;
+  pointer-events: all; /* enable interaction blocking */
+  display: flex;
+}
+
+.spinner-overlay.hide {
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
+
+/* Spinner content: frosted glass style box */
+.spinner-content {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 30px 40px;
+  border-radius: 16px;
+  text-align: center;
+  min-width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  color: #222;
+  font-weight: 600;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  z-index: 10000; /* ensure above spinner-overlay */
+}
+
+/* Spinner bigger bootstrap spinner */
+.spinner-border {
+  width: 4rem !important;
+  height: 4rem !important;
+  margin-bottom: 20px;
+  color: #007bff;
+}
+
+/* Progress bar container */
+.progress {
+  height: 24px;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 20px auto;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Progress bar itself */
+#spinnerProgressBar {
+  height: 100%;
+  line-height: 24px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: transparent;
+  background: linear-gradient(90deg, #4ea8ff, #1976d2);
+  transition: width 0.25s ease-in-out;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+
+
+/* Percent text inside progress bar */
+#spinnerPercentText {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: white;
+  text-shadow: 0 0 4px rgba(0,0,0,0.7);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Status text below progress bar */
+#spinnerStatus {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  color: #111;
+  font-weight: 600;
+}
+
+/* Loading tip text */
+#loadingTip {
+  position: absolute;               /* ✅ Prevents disrupting flex centering */
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9998;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  text-align: left;
+  width: auto;
+  backdrop-filter: blur(6px);
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, -10px); /* move up slightly */
+  }
+}
+
+#loadingTip.opacity-100 {
+  opacity: 1;
+}
+
+
+/* Cytoscape container full size */
+#cy {
+  height: 100%;   /* full viewport height */
+  width: 100%;    /* full width */
+  position: relative;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+
+}
+#cy-wrapper {
+  position: relative;
+  height: 100%;  /* or adjust to your preferred height */
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow-y: scroll;
+}
+#toastContainer {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1050; /* High enough to appear over other elements */
+
+}
+
+/*Node Editor*/
+
+#node-editor button:hover {
+  background-color: #0056b3;
+}
+
+/* Modal Dialog: larger and nicely centered */
+.modal-dialog {
+  max-width: 700px;
+  margin: 1.75rem auto;
+}
+
+.modal-content {
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border: none;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+/* Modal Header */
+.modal-header {
+  background: linear-gradient(to right, #007bff, #0056b3);
+  color: white;
+  border-bottom: none;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Close button appearance on dark background */
+.btn-close-white {
+  filter: invert(1);
+}
+
+/* Modal Body: readable text and scroll support */
+.modal-body {
+  background-color: #f9f9f9;
+  color: #007bff;
+  font-size: 1.7rem;
+  padding: 1.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+/* Optional: animate dialog slide-in */
+.modal.fade .modal-dialog {
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  transform: translateY(-20px);
+  opacity: 0;
+}
+
+.modal.fade.show .modal-dialog {
+  transform: translateY(0);
+  opacity: 1;
+}
+node:selected {
+  border-width: 4px;
+  border-color: #007bff;
+}
+
+.delete-icon-svg {
+stroke: gray;
+  transition: all 0.2s ease;
+    cursor: pointer;            /* Show pointer on hover */
+
+}
+
+.delete-icon-svg:hover {
+  stroke: orange;
+  transform: scale(1.2);
+}
+
+.delete-node-btn {
+  position: absolute;
+    pointer-events: auto;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0;
+  margin: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.delete-node-btn svg {
+      stroke: orange;               /* Default color */
+  width: 100%;
+  height: 100%;
+  transition: all 0.2s ease;
+}
+
+.delete-node-btn svg:hover {
+  stroke: red;
+  transform: scale(1.2);
+}
+.highlighted {
+  border-width: 4px;
+  border-color: #00bfff;
+}
+.reassign-hint {
+  font-size: 1.15rem;
+  color: #212529; /* Bootstrap's dark text */
+  font-weight: 500;
+}
+
+/* Show/hide transitions */
+.loading-tip.opacity-0 {
+  opacity: 0;
+  pointer-events: none;
+}
+.loading-tip.opacity-100 {
+  opacity: 1;
+  pointer-events: auto;
+}
+.tip-box {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  max-width: 320px;
+  margin: 0 auto;
+  transition: opacity 0.5s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+body.dark-mode .tip-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #4ea8ff; /* Light blue for dark mode */
+}
+#tipText {
+  color: white;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.7); /* stronger glow for clarity */
+  font-weight: 700;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); }
+  50% { box-shadow: 0 0 18px rgba(255, 255, 255, 0.5); }
+  100% { box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); }
+}
+
+
+@keyframes slideSideToSide {
+  0%   { transform: translateX(-50%) translateX(-20px); }
+  50%  { transform: translateX(-50%) translateX(20px); }
+  100% { transform: translateX(-50%) translateX(-20px); }
+}
+
+#loadingTip.move-slide {
+  animation: slideSideToSide 1.5s ease-in-out;
+}
+.draggable-modal {
+  cursor: move;
+  user-select: none;
+}
+
+.color-swatch {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 3px rgba(0,0,0,0.2);
+  position: relative;
+}
+.color-swatch:hover {
+  border-color: #000;
+}
+
+.color-swatch.selected-color {
+  border: 2px solid #000; /* Highlight selected swatch */
+  position: relative;
+}
+
+.color-swatch.selected-color::after {
+  content: '✔';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: white;
+  color: black;
+  font-size: 12px;
+  border-radius: 50%;
+  padding: 1px;
+  line-height: 1;
+}
+
+
+
+.btn-primary {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3; /* darker blue */
+  box-shadow: 0 0 10px #0056b3aa;
+}
+#summaryContent h4,
+#fullPageSummaryContent h4 {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.25rem;
+}
+
+#summaryContent p,
+#fullPageSummaryContent p {
+    line-height: 1.5;
+    font-size: 1rem;
+    padding-left: 1rem;
+}
+    /* Animated gradient background for hero */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .hero-bg {
+      background: linear-gradient(135deg, #6f42c1, #20c997, #6f42c1);
+      background-size: 300% 300%;
+      animation: gradientShift 15s ease infinite;
+    }
+/* in your CSS */
+.modal {
+    z-index: 13000 !important; /* higher than fullscreen summary overlay */
+}
+.modal-backdrop {
+    z-index: 12999 !important;
+}
+.cy-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  opacity: 0.1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}

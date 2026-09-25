@@ -1,0 +1,55 @@
+{
+  "grade": "Grade 5",
+  "subject": "Science",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "life_cycles_and_reproduction": {
+      "display_name": "Life Cycles, Reproduction, and Health",
+      "rules": [
+        "Compare the life cycles of mammals, birds, amphibians, insects, and flowering plants.",
+        "Detail the parts of a flower involved in reproduction: stamen (anther, filament) and carpel/pistil (stigma, style, ovary).",
+        "Explain the sequential processes of pollination, fertilization, seed production, and seed dispersal.",
+        "Introduce the basic functions of major human organs (brain, heart, lungs, kidneys, liver) and how to maintain a healthy lifestyle."
+      ],
+      "scientific_enquiry": ["Using detailed scientific diagrams", "Making observational comparisons across animal classes"],
+      "vocabulary": ["life cycle", "stamen", "anther", "filament", "carpel", "stigma", "ovary", "pollination", "fertilization", "seed dispersal", "vital organs"],
+      "solution_steps": "1. Identify the specific reproductive organ part or animal class shown in the question diagram. 2. Outline its biological role or placement in the cycle sequence. 3. Conclude with a clear comparative explanation matching the given scenario."
+    },
+    "properties_and_changes_of_materials": {
+      "display_name": "Properties, Solutions, and Chemical Changes",
+      "rules": [
+        "Introduce the concepts of dissolving, solutes, solvents, and forming solutions.",
+        "Investigate factors affecting the rate of dissolving (temperature, stirring, particle size).",
+        "Differentiate clearly between reversible physical changes (melting, dissolving, evaporating) and irreversible chemical changes (burning, rusting, cooking).",
+        "Explore mixtures and how to separate them using filtration, sieving, or evaporation."
+      ],
+      "scientific_enquiry": ["Identifying anomalies in line graphs", "Designing fair tests for dissolving rates", "Isolating independent variables"],
+      "vocabulary": ["dissolve", "solute", "solvent", "solution", "soluble", "insoluble", "reversible change", "irreversible change", "chemical reaction", "filtration"],
+      "solution_steps": "1. Determine if the structural matter change creates a brand-new substance or can be undone (reversible vs irreversible). 2. For solution chemistry, isolate the active variable (e.g., higher temperature increases the rate of dissolving). 3. Formulate an experimental conclusion line."
+    },
+    "light_transmission_and_reflection": {
+      "display_name": "Light Transmission and Reflection",
+      "rules": [
+        "Explain how light travels from a source, reflects off a surface, and enters our eyes to enable vision.",
+        "Investigate how light reflects off shiny, smooth surfaces (mirrors) versus rough, dull surfaces.",
+        "Introduce how light changes direction when moving through different mediums, leading to refraction (e.g., straw looking bent in water).",
+        "Analyze how changing the distance between a light source, an object, and a screen alters the shadow characteristics."
+      ],
+      "scientific_enquiry": ["Drawing straight-line ray diagrams with arrow directions", "Measuring shadow dimensions from experimental setups"],
+      "vocabulary": ["ray diagram", "reflection", "refraction", "angle of reflection", "shiny surface", "dull surface", "medium", "shadow intensity"],
+      "solution_steps": "1. Trace the straight path of the light rays starting strictly from the source. 2. Insert positional directional arrows pointing towards the eye. 3. Apply the properties of reflection or refraction to explain the visual observation."
+    },
+    "earth_and_the_solar_system": {
+      "display_name": "Earth, Space, and the Solar System",
+      "rules": [
+        "Identify the planets in our Solar System and map their order from the Sun.",
+        "Explain that the Earth, Sun, and Moon are approximately spherical bodies.",
+        "Understand that the Earth takes 365.25 days to orbit the Sun, and rotates on its axis once every 24 hours to cause day and night.",
+        "Explain how the Moon orbits the Earth every 28 days, leading to visible changes in the shape of the Moon (phases of the Moon)."
+      ],
+      "scientific_enquiry": ["Interpreting celestial scale tracking charts", "Pattern seeking across monthly phases"],
+      "vocabulary": ["Solar System", "orbit", "axis rotation", "spherical", "phases of the Moon", "crescent", "gibbous", "gravitational pull"],
+      "solution_steps": "1. Identify the celestial spatial alignment highlighted (e.g., Earth spinning vs Earth orbiting). 2. Apply the matching timescale rule (24 hours vs 365 days). 3. State the observable consequence occurring in the sky."
+    }
+  }
+}

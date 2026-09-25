@@ -1,0 +1,51 @@
+{
+  "grade": "Grade 2",
+  "subject": "Science",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "environments_and_habitats": {
+      "display_name": "Environments and Habitats",
+      "rules": [
+        "Identify different local and global habitats (e.g., desert, forest, polar, ocean, pond).",
+        "Map how specific plants and animals depend on their habitat to find food, water, and shelter to survive.",
+        "Introduce basic environmental care and matching living things based on their similarities and differences."
+      ],
+      "scientific_enquiry": ["Collecting evidence through observation", "Recording findings on images or simple tables"],
+      "vocabulary": ["habitat", "environment", "survive", "shelter", "desert", "polar", "micro-habitat"],
+      "solution_steps": "1. Scan the specified habitat traits (e.g., hot and dry vs. cool and wet). 2. Connect the plant or animal's structural needs to what the habitat provides. 3. State how the living thing utilizes its environment to survive."
+    },
+    "properties_of_materials": {
+      "display_name": "Properties and Changes of Materials",
+      "rules": [
+        "Introduce advanced descriptive material properties: absorbent, dull, flexible, rigid, rough, shiny, and smooth.",
+        "Categorize objects using Venn diagrams based on multiple simultaneous properties (e.g., a rock is both rigid and rough).",
+        "Explore how heating and cooling can change the states or shapes of certain everyday materials."
+      ],
+      "scientific_enquiry": ["Testing vs. observing to find answers", "Sorting objects into overlapping sets"],
+      "vocabulary": ["absorbent", "flexible", "rigid", "rough", "smooth", "properties", "Venn diagram"],
+      "solution_steps": "1. Inspect the target object's material type. 2. Execute a mental test or physical criteria check (e.g., does it bend without breaking? -> flexible). 3. List the complete properties or map the item accurately inside the classification set."
+    },
+    "electricity_and_safety": {
+      "display_name": "Electricity and Electrical Safety",
+      "rules": [
+        "Identify common appliances that run on mains electricity versus those that use small electrical cells/batteries.",
+        "Enforce strict real-world electrical safety rules (e.g., keeping water away from wires, never sticking items into sockets, not touching broken appliances).",
+        "Understand that electricity flows through the metal part of a wire and is insulated by plastic for protection."
+      ],
+      "scientific_enquiry": ["Identifying safety risks", "Classifying power sources"],
+      "vocabulary": ["mains electricity", "electrical cell", "battery", "appliances", "wall socket", "electric shock", "safety rule"],
+      "solution_steps": "1. Look at the device scenario or target action in the question. 2. Identify if it uses high-voltage mains power or low-voltage cells. 3. Apply the corresponding protective rule or identify the safety violation clearly."
+    },
+    "earth_and_space_light": {
+      "display_name": "Earth and Space (Day, Night, and Shadows)",
+      "rules": [
+        "Explore how the apparent movement of the Sun across the sky alters the size and position of shadows throughout the day.",
+        "Understand that the spin of the Earth leads to the continuous pattern of day and night.",
+        "Reinforce that the Sun is a powerful light source and outline practices to protect eyes from direct sunlight."
+      ],
+      "scientific_enquiry": ["Pattern seeking over time", "Predicting shadow lengths based on position"],
+      "vocabulary": ["Sun", "Earth's spin", "rotation", "day and night", "shadow position", "light source"],
+      "solution_steps": "1. Determine the time of day or position of the light source relative to the object. 2. Apply the shadow direction rule (shadows always form on the opposite side of the light source). 3. Conclude how long or short the shadow will be based on the angle of elevation."
+    }
+  }
+}

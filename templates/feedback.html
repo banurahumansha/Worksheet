@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback - MapBuddyAI{% endblock %}
+
+{% block content %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-info">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <h1 class="mb-3">Thank you for using MapBuddyAI!</h1>
+  <p>Please help us improve by sharing your feedback below:</p>
+
+  <form id="feedbackForm">
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" id="email" name="email" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="rating" class="form-label">How would you rate your experience so far? (1 - Poor, 5 - Excellent)</label>
+      <input type="number" id="rating" name="rating" class="form-control" min="1" max="5" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="like" class="form-label">What do you like most about MapBuddyAI?</label>
+      <textarea id="like" name="like" class="form-control" rows="3" required></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="improvements" class="form-label">What improvements or features would you like?</label>
+      <textarea id="improvements" name="improvements" class="form-control" rows="3" required></textarea>
+    </div>
+    <div class="mb-3">
+      <label for="bugs" class="form-label">Any bugs or issues you encountered? ? </label>
+            <textarea id="bugs" name="improvements" class="form-control" rows="3" required></textarea>
+    </div>
+    <div class="mb-3">
+      <label for="comments" class="form-label">Any other comments?</label>
+      <textarea id="comments" name="comments" class="form-control" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Submit Feedback</button>
+  </form>
+
+  <p class="mt-3"><a href="{{ url_for('home') }}">Return to Home</a></p>
+
+  <script>
+    document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const data = {
+        YOUR_EMAIL_ENTRY_ID: formData.get('email'),
+        YOUR_BUGS_ID: formData.get('bugs'),
+        YOUR_RATING_ENTRY_ID: formData.get('rating'),
+        YOUR_LIKE_ENTRY_ID: formData.get('like'),
+        YOUR_IMPROVEMENTS_ENTRY_ID: formData.get('improvements'),
+        YOUR_COMMENTS_ENTRY_ID: formData.get('comments')
+      };
+
+      submitToGoogleForm(data);
+    });
+
+    function submitToGoogleForm(data) {
+      const formData = new FormData();
+          formData.append("entry.132376348", data.YOUR_EMAIL_ENTRY_ID);
+    formData.append("entry.887865659 ", data.YOUR_LIKE_ENTRY_ID);
+    formData.append("entry.1598560045", data.YOUR_IMPROVEMENTS_ENTRY_ID);
+    formData.append("entry.1258407418", data.YOUR_COMMENTS_ENTRY_ID);
+    formData.append("entry.1009410232", data.YOUR_BUGS_ID);
+    formData.append("entry.1843556231", data.YOUR_RATING_ENTRY_ID);
+
+
+      fetch("https://docs.google.com/forms/d/e/1FAIpQLScdn_qZ2EjZpwr0-_oUMuup1mF4UDAQ1E0QWW-IHD38ukJXTQ/formResponse", {
+        method: "POST",
+        body: formData,
+        mode: "no-cors"
+      }).then(() => {
+        alert("Thank you for your feedback!");
+        document.getElementById('feedbackForm').reset();
+      }).catch(() => {
+        alert("There was an error submitting your feedback. Please try again.");
+      });
+    }
+  </script>
+{% endblock %}

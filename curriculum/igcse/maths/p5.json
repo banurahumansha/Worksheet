@@ -1,0 +1,31 @@
+{
+  "grade": "Grade 5",
+  "subject": "Mathematics",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "fractions_decimals_percentages": {
+      "display_name": "Fractions, Decimals, and Percentages (Advanced)",
+      "rules": [
+        "Include ordering and comparing fractions with different denominators using common multiples.",
+        "Introduce adding and subtracting fractions with RELATED denominators (one is a multiple of the other, e.g., 1/3 + 1/6).",
+        "Include finding percentages of shapes and whole quantities (e.g., finding 10% or 50% of 200).",
+        "Work with decimals up to 3 decimal places (thousandths)."
+      ],
+      "heuristics": ["Equivalent Fraction Multiples Wall", "Unitary Percentage Mapping Block"],
+      "vocabulary": ["related denominators", "lowest common multiple", "thousandths", "percentage of a quantity", "simplify"],
+      "solution_steps": "1. Find a common denominator by calculating the lowest common multiple. 2. Convert the target fraction and complete the addition or subtraction matrix. 3. Reduce the final result into its simplest structural form."
+    },
+    "geometry_and_data": {
+      "display_name": "Geometry, Coordinate Grids, and Data Representation",
+      "rules": [
+        "Introduce reading and plotting coordinates in the first quadrant (positive x and y axes).",
+        "Calculate the area of a rectangle using the formula (Length x Width).",
+        "Interpret data from line graphs, bar charts, and frequency tables to extract trends.",
+        "Introduce calculating the mode and median of a basic dataset."
+      ],
+      "heuristics": ["X-Y Coordinate Axis Plotting", "Formula Substitution Method", "Data Trend Line Extraction"],
+      "vocabulary": ["coordinate", "first quadrant", "x-axis", "y-axis", "mode", "median", "frequency table", "line graph"],
+      "solution_steps": "1. Locate the specific graph indicators, coordinates, or measurements. 2. Apply the rule (e.g., length times width for area, or identifying the middle value for median). 3. Formulate the final numerical or coordinate statement."
+    }
+  }
+}

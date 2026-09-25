@@ -1,0 +1,54 @@
+{
+  "grade": "Primary 3",
+  "subject": "Science",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "diversity_of_living_and_non_living_things": {
+      "display_name": "Diversity (Living and Non-Living Things)",
+      "rules": [
+        "Focus on the general characteristics of living things (need air, food, water; grow; respond to changes; reproduce).",
+        "Classify things into living things, non-living things, plants, animals, fungi, and bacteria.",
+        "Plants classification must be limited to flowering and non-flowering plants.",
+        "Animals classification must be limited to standard animal groups (mammals, birds, insects, fish, amphibians, reptiles).",
+        "Questions should test their characteristics (e.g., body covering, how they reproduce)."
+      ],
+      "process_skills": ["Observing", "Classifying", "Comparing"],
+      "vocabulary": ["characteristics", "reproduce", "respond to changes", "flowering", "non-flowering", "mammals", "outer body covering", "fungi", "microorganisms"],
+      "solution_steps": "1. Identify the specific characteristics shown in the question scenario or classification table. 2. Compare the traits using scientific keywords. 3. State the final classification group or reasoning statement."
+    },
+    "diversity_of_materials": {
+      "display_name": "Diversity (Materials)",
+      "rules": [
+        "Focus on types of materials: wood, metal, plastic, glass, ceramic, fabric, and rubber.",
+        "Test physical properties strictly limited to: strength, flexibility, waterproofness, and ability to float/sink.",
+        "Word problems/experimental questions must relate properties to the everyday use of the object (e.g., why an umbrella must be made of waterproof material)."
+      ],
+      "process_skills": ["Analyzing", "Evaluating experimental setups"],
+      "vocabulary": ["physical property", "flexibility", "waterproof", "absorbent", "strength", "transparent", "opaque"],
+      "solution_steps": "1. Identify the intended function of the everyday object. 2. Link the required function to the matching physical property of the material. 3. Formulate the scientific explanation statement."
+    },
+    "systems_human_body": {
+      "display_name": "Systems (Human Digestive & Major Systems)",
+      "rules": [
+        "Identify the functions of major systems: Digestive, Respiratory, Circulatory, Muscular, and Skeletal systems.",
+        "For the Digestive System, focus strictly on the main organs: mouth, gullet, stomach, small intestine, and large intestine.",
+        "Questions must track the path of food and where digestion takes place (mouth, stomach, small intestine) versus where water is absorbed (large intestine).",
+        "Do NOT introduce advanced cell biology or specific chemical enzymes (which are upper block concepts)."
+      ],
+      "process_skills": ["Tracing pathways", "Identifying functions"],
+      "vocabulary": ["digestive system", "gullet", "stomach", "small intestine", "large intestine", "digested food", "undigested food", "absorb water", "circulatory system", "respiratory system"],
+      "solution_steps": "1. Trace the movement of food through the digestive organs sequentially. 2. Determine whether digestion, absorption of food, or absorption of water occurs at that specific organ. 3. Conclude with a clear functional explanation."
+    },
+    "systems_plants": {
+      "display_name": "Systems (Plant Parts and Functions)",
+      "rules": [
+        "Identify the main plant parts: roots, stem, leaves, and flowers.",
+        "Focus strictly on their primary functions: roots absorb water/mineral salts and anchor the plant; stem supports the plant and transports water/food; leaves make food in the presence of light.",
+        "Do NOT use the advanced terms 'xylem' or 'phloem' (Primary 5 standard). Keep it to 'water-carrying tubes' and 'food-carrying tubes'."
+      ],
+      "process_skills": ["Inferring functions from disruptions (e.g., what happens if roots are removed)"],
+      "vocabulary": ["roots", "stem", "leaves", "absorb water", "mineral salts", "transport", "make food", "water-carrying tubes", "food-carrying tubes"],
+      "solution_steps": "1. Identify which plant part is highlighted or compromised in the question scenario. 2. State the primary function of that specific plant part. 3. Explain the consequence on the plant's survival based on that function."
+    }
+  }
+}

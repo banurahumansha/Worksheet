@@ -1,0 +1,29 @@
+{
+  "grade": "Primary 2",
+  "subject": "English",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "grammar_expansion": {
+      "display_name": "Grammar (Conjunctions and Quantifiers)",
+      "rules": [
+        "Introduce fundamental coordinating conjunctions ('and', 'but', 'or', 'so') and primary quantifiers ('many', 'much', 'some', 'any').",
+        "Incorporate regular and simple irregular past tense verbs (e.g., walk->walked, go->went).",
+        "Sentences can extend into compound structures but must not include complex embedded relative clauses."
+      ],
+      "component_skills": ["Applying basic sentence connectors", "Differentiating countable and uncountable quantifiers"],
+      "vocabulary": ["because", "went", "ate", "bought", "many", "much", "few"],
+      "solution_steps": "1. Determine if the noun can be counted individually (countable vs uncountable). 2. Identify the logical link between the sentence parts (addition, contrast, reason). 3. Pick the quantifier or connector that completes the rule."
+    },
+    "sentence_combining": {
+      "display_name": "Basic Sentence Combining",
+      "rules": [
+        "Provide two separate short sentences to combine into one using a clear given prompt word.",
+        "Connectors are strictly limited to P2 targets: 'and', 'but', 'so', 'because'.",
+        "Ensure no advanced punctuation shifts or pronoun conversions are required."
+      ],
+      "component_skills": ["Combining repetitive ideas cleanly", "Maintaining baseline sentence mechanics"],
+      "vocabulary": ["and", "but", "so", "because"],
+      "solution_steps": "1. Read both sentences to find the shared idea. 2. Remove the repetitive noun or period punctuation point. 3. Link them cleanly using the provided prompt connector."
+    }
+  }
+}

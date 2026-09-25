@@ -1,0 +1,55 @@
+{
+  "grade": "Grade 4",
+  "subject": "Science",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "humans_and_habitats": {
+      "display_name": "Humans, Animals, and Habitats",
+      "rules": [
+        "Identify the role of the human skeleton: support, protection of vital organs, and movement.",
+        "Compare human skeleton functions with the skeletons of different animals (vertebrates vs. invertebrates).",
+        "Introduce food chains, mapping how energy flows from producers (plants) to consumers (herbivores and carnivores).",
+        "Analyze how changes to a local environment can present dangers to living things (e.g., pollution, deforestation)."
+      ],
+      "scientific_enquiry": ["Using keys and classification charts", "Predicting ecological consequences"],
+      "vocabulary": ["skeleton", "bones", "support", "protection", "vertebrate", "invertebrate", "producer", "consumer", "food chain", "habitat destruction"],
+      "solution_steps": "1. Identify whether the target organism has an internal backbone or an external shell structure. 2. For food chains, map the directional energy flow arrows pointing from the food source to the consumer. 3. Formulate the scientific consequence or structural function statement."
+    },
+    "states_of_matter_and_changes": {
+      "display_name": "States of Matter and the Water Cycle",
+      "rules": [
+        "Describe the basic differences between solids, liquids, and gases based on their particle behavior shapes and volumes.",
+        "Introduce measuring the temperature of liquids using a thermometer (Celsius scale).",
+        "Explore how heating and cooling cause changes of state: melting, solidifying, evaporation, and condensation.",
+        "Link evaporation and condensation directly to the real-world water cycle."
+      ],
+      "scientific_enquiry": ["Reading temperature scales accurately", "Identifying trends in melting or freezing data graphs"],
+      "vocabulary": ["solid", "liquid", "gas", "particles", "melting point", "boiling point", "evaporation", "condensation", "water cycle", "thermometer"],
+      "solution_steps": "1. Identify the baseline temperature state of the substance. 2. Determine whether heat energy is being gained or lost by the particles. 3. State the exact name of the phase transformation process and trace its visual effect."
+    },
+    "sound_and_vibrations": {
+      "display_name": "Sound and Vibrations",
+      "rules": [
+        "Understand that sounds are made when objects vibrate.",
+        "Recognize that sound travels through a medium (solid, liquid, or gas) to reach our ears.",
+        "Explore how the pitch of a sound changes with structural variations (e.g., thickness, length, or tightness of a string).",
+        "Explore how loudness changes based on the strength of the vibration or distance from the source."
+      ],
+      "scientific_enquiry": ["Setting up a fair test for sound insulation", "Recording loudness data in bar charts"],
+      "vocabulary": ["vibration", "medium", "pitch", "high pitch", "low pitch", "loudness", "volume", "sound source", "insulate"],
+      "solution_steps": "1. Isolate the mechanical modification made to the sound object (e.g., shortening a string vs striking it harder). 2. Apply the wave property rule: faster vibrations create a higher pitch; bigger vibrations create a louder volume. 3. Conclude with a comparative sound prediction line."
+    },
+    "forces_and_motion_energy": {
+      "display_name": "Forces, Magnetism, and Energy",
+      "rules": [
+        "Explore friction as a resistive force that slows down moving objects on varying surface textures.",
+        "Analyze how shapes move through air or water, introducing air resistance and water resistance.",
+        "Investigate how magnets can exert a force on magnetic materials through some non-magnetic barriers (like paper or plastic sheets).",
+        "Identify simple daily energy transfers (e.g., moving things, heat, light, sound)."
+      ],
+      "scientific_enquiry": ["Identifying independent and control variables in a friction test", "Measuring distance or time accurately"],
+      "vocabulary": ["friction", "resistive force", "air resistance", "water resistance", "streamlined", "magnetic field", "non-magnetic barrier", "energy transfer"],
+      "solution_steps": "1. Isolate the target opposing force active in the movement setup (e.g., friction on a rough rug). 2. Describe how this resistive force acts against the direction of the moving object. 3. Formulate an explanatory trend matching the experimental variables."
+    }
+  }
+}

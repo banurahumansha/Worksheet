@@ -1,0 +1,38 @@
+{
+  "grade": "Grade 5",
+  "subject": "English",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "grammar_and_clauses": {
+      "display_name": "Grammar (Relative Clauses and Active/Passive Formats)",
+      "rules": [
+        "Introduce complex relative clauses using relative pronouns ('who', 'which', 'where', 'whose', 'that').",
+        "Differentiate basic active and passive sentence constructions conceptually.",
+        "Enforce correct capitalization and punctuation for multi-line direct quotes and broken dialogue blocks.",
+        "Vocabulary must map onto CEFR A2/B1 metrics (Lexile 600L-800L)."
+      ],
+      "language_skills": [
+        "Embedding relative clauses cleanly",
+        "Dialogue punctuation management",
+        "Identifying active and passive sentence structures"
+      ],
+      "vocabulary": ["discovered", "unfortunate", "however", "consequently", "interrupted", "replied", "exclaimed"],
+      "solution_steps": "1. Locate the noun that needs more description inside the sentence framework. 2. Insert the correct relative pronoun modifier right behind that noun block. 3. Adjust the remaining clause words, dropping duplicate items."
+    },
+    "textual_structure_and_features": {
+      "display_name": "Textual Structure and Non-Fiction Features",
+      "rules": [
+        "Generate a balanced, multi-paragraph non-fiction text (e.g., a formal report, biography, or persuasive letter) between 200 to 250 words.",
+        "Questions must test structural features such as headings, subheadings, introductory hooks, and formal sign-offs.",
+        "Include evaluation questions requiring students to distinguish between factual evidence and author opinions."
+      ],
+      "language_skills": [
+        "Identifying organizational features",
+        "Distinguishing fact from opinion",
+        "Analyzing formal vocabulary choices"
+      ],
+      "vocabulary": ["furthermore", "in conclusion", "evidence", "opinion", "biography", "persuade"],
+      "solution_steps": "1. Read the text to map out the purpose of each individual paragraph block. 2. Locate the target sentence highlighted in the prompt. 3. Evaluate if the statement can be proven true (fact) or represents a personal viewpoint (opinion)."
+    }
+  }
+}

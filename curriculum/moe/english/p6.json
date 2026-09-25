@@ -1,0 +1,29 @@
+{
+  "grade": "Primary 6",
+  "subject": "English",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "synthesis_nominalisation": {
+      "display_name": "Synthesis (Nominalisation and Active-Passive Voice)",
+      "rules": [
+        "Transform active sentence dynamics into formal passive setups, checking structural agent positioning.",
+        "Execute nominalisation tasks where an adjective or action verb must morph into its abstract noun format (e.g., 'He was angry' -> 'Due to his anger').",
+        "Test high-level logical subordinators ('Despite', 'In spite of', 'Much to his', 'No sooner had')."
+      ],
+      "component_skills": ["Morphing phrase classes into abstract nouns", "Re-arranging object-agent priority matrix syntax"],
+      "vocabulary": ["despite", "in spite of", "much to", "disappointment", "furious", "fury", "admittance"],
+      "solution_steps": "1. Isolate the target verb or description unit from the seed phrase. 2. Extract its matching abstract noun expression format. 3. Structure the resulting prepositional block, checking subject-verb alignment."
+    },
+    "comprehension_open_ended": {
+      "display_name": "Comprehension Open-Ended (PSLE Format)",
+      "rules": [
+        "Generate a premium, multi-layered text narrative/exposition (350-450 words) displaying standard PSLE tonal complexity.",
+        "Formulate a structured set of 4 questions covering specific analytical markers: literal recall, inferential character motivations, and true/false verification matrices requiring textual quotes.",
+        "Answers must rely purely on extraction or deduction from the text context, without using external knowledge."
+      ],
+      "component_skills": ["Locating contextual verification data", "Formulating precise inference evaluations"],
+      "vocabulary": ["infer", "evidence", "true or false", "reason", "phrase", "expression"],
+      "solution_steps": "1. Locate the query anchor keywords within the text passage. 2. Assess the context surrounding the line to uncover implicit motives or values. 3. Draft a precise explanation statement that answers the question directly."
+    }
+  }
+}

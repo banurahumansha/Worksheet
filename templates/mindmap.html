@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mindmap Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+<!-- Add this in your <head> or before your custom JS -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@7.6.0/build/index.js"></script>
+
+  <!-- Cytoscape -->
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.24.0/dist/cytoscape.min.js"></script>
+  <!-- DAGRE layout -->
+  <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+  <script src="https://unpkg.com/cytoscape-dagre@2.3.2/cytoscape-dagre.js"></script>
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-93VZS0EY19', { 'debug_mode': true });  // Replace with your Measurement ID
+  </script> </head>
+<body>
+<!-- Minimal Sign Out Button (top-right) -->
+<a href="#"
+   class="btn btn-sm btn-outline-danger position-absolute"
+   style="top: 10px; right: 20px; z-index: 2000;"
+   data-bs-toggle="modal"
+   data-bs-target="#signOutModal">
+   🔓  Sign Out
+</a>
+<!-- Sign Out Modal -->
+<div class="modal fade" id="signOutModal" tabindex="-1" aria-labelledby="signOutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="signOutModalLabel">Sign Out</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to sign out?</p>
+        <p class="mt-2 text-muted">Before you go, we’d love your feedback!</p>
+        <a href="{{ url_for('feedback') }}" class="btn btn-link p-0">Share Feedback</a>
+      </div>
+      <div class="modal-footer">
+        <form action="{{ url_for('logout') }}" method="post" class="d-inline">
+          <button type="submit" class="btn btn-danger">Yes, sign out</button>
+        </form>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="sideControls" class="position-absolute bg-light border-end d-flex flex-column align-items-center p-3 gap-2"
+     style="top:50%; left: 0; transform: translateY(-50%); z-index: 10; width: 160px; max-height: 85vh; overflow-y: auto; border-radius: 0 10px 10px 0;">
+<button id="uploadAgainBtn"
+        class="btn btn-outline-primary btn-sm w-100 mb-2 disable-during-mode"
+        title="Upload Another File">
+  🔄 Upload Another File
+</button>
+
+  <!-- Layouts -->
+  <div class="dropdown w-100 disable-during-mode">
+    <button class="btn btn-secondary dropdown-toggle btn-sm w-100 rounded-2"
+            id="layoutDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="Choose a layout">
+      🧩 Layouts
+    </button>
+    <ul class="dropdown-menu w-100" aria-labelledby="layoutDropdown">
+<a class="dropdown-item control-button" href="#"
+   onclick="gtag('event', 'click', { 'event_category': 'Layout', 'event_label': 'Breadthfirst Layout' }); applyLayout('breadthfirst'); event.preventDefault();">📚 Breadthfirst</a>
+<a class="dropdown-item control-button" href="#"
+   onclick="gtag('event', 'click', { 'event_category': 'Layout', 'event_label': 'Dagre Layout' }); applyLayout('dagre'); event.preventDefault();">📊 Dagre</a>
+<a class="dropdown-item control-button" href="#"
+   onclick="gtag('event', 'click', { 'event_category': 'Layout', 'event_label': 'Tree Layout' }); applyLayout('tree'); event.preventDefault();">🌳 Tree</a>
+<a class="dropdown-item control-button" href="#"
+   onclick="gtag('event', 'click', { 'event_category': 'Layout', 'event_label': 'SplitTree Layout' }); applyLayout('splitTree'); event.preventDefault();">↕️🌳 SplitTree</a>
+
+<!--      <li><a class="dropdown-item control-button" href="#" onclick="applyLayout('circle'); event.preventDefault();">🔵 Circle</a></li>-->
+<!--      <li><a class="dropdown-item control-button" href="#" onclick="applyLayout('concentric'); event.preventDefault();">⭕ Concentric</a></li>-->
+<!--      <li><a class="dropdown-item control-button" href="#" onclick="applyLayout('breadthfirst'); event.preventDefault();">📚 Breadthfirst</a></li>-->
+<!--      <li><a class="dropdown-item control-button" href="#" onclick="applyLayout('dagre'); event.preventDefault();">📊 Dagre</a></li>-->
+<!--      <li><a class="dropdown-item control-button" href="#" onclick="applyLayout('tree'); event.preventDefault();">🌳 Tree</a></li>-->
+<!--      <li><a class="dropdown-item control-button" href="#" onclick="applyLayout('splitTree'); event.preventDefault();">↕️🌳splitTree</a></li>-->
+
+    </ul>
+  </div>
+  <!-- Node Tools -->
+<!--  <button id="reassignParentBtn" class="btn btn-warning btn-sm w-100 rounded-2 disable-during-mode control-button" title="Reassign selected node's parent">🔄 Reassign Parent</button>-->
+<!--  <button id="addNodeBtn" class="btn btn-success btn-sm w-100 rounded-2 disable-during-mode control-button" title="Add child node">➕ Add Node</button>-->
+<button id="reassignParentBtn" class="btn btn-warning btn-sm w-100 rounded-2 disable-during-mode control-button"
+        title="Reassign selected node's parent"
+        onclick="gtag('event', 'click', { 'event_category': 'Node', 'event_label': 'Reassign Parent Button' });">
+ 🔗 Reassign Parent
+</button>
+
+<button id="addNodeBtn" class="btn btn-success btn-sm w-100 rounded-2 disable-during-mode control-button"
+        title="Add child node"
+        onclick="gtag('event', 'click', { 'event_category': 'Node', 'event_label': 'Add Node Button' });">
+  ➕ Add Node
+</button>
+
+  <!-- Action Buttons -->
+  <button id="undoDeleteBtn" class="btn btn-primary btn-sm w-100 rounded-2 disable-during-mode"
+        title="Undo last delete"
+        onclick="gtag('event', 'click', { 'event_category': 'Action', 'event_label': 'Undo Delete Button' });">
+  ↩️ Undo Delete
+</button>
+  <button class="btn btn-warning btn-sm w-100 rounded-2 disable-during-mode" onclick="addIconToSelectedNode()" title="Add an icon">🔥 Add Icon</button>
+  <button class="btn btn-info btn-sm w-100 rounded-2 disable-during-mode" onclick="cy.fit()" title="Fit view to screen">🖥️ Fit to Screen</button>
+
+  <!-- Optional navigation (search) -->
+  <button id="prevMatchBtn" class="btn btn-outline-secondary btn-sm w-100 d-none" title="Previous match">⬅️ Previous</button>
+  <button id="nextMatchBtn" class="btn btn-outline-secondary btn-sm w-100 d-none" title="Next match">➡️ Next</button>
+
+
+  <!-- Theme -->
+  <div class="dropdown w-100 disable-during-mode">
+    <button class="btn btn-secondary dropdown-toggle btn-sm w-100 rounded-2"
+            id="themeDropdown"
+            data-bs-toggle="dropdown"
+            title="Change theme">
+      🎨 Theme
+    </button>
+    <ul class="dropdown-menu w-100">
+      <a class="dropdown-item" href="#"
+   onclick="gtag('event', 'click', { 'event_category': 'Theme', 'event_label': 'Colored Theme' }); applyTheme('colored'); event.preventDefault();">🌈 Colored</a>
+<a class="dropdown-item" href="#"
+   onclick="gtag('event', 'click', { 'event_category': 'Theme', 'event_label': 'Light Theme' }); applyTheme('minimal-light'); event.preventDefault();">⚪ Light</a>
+<a class="dropdown-item" href="#"
+   onclick="gtag('event', 'click', { 'event_category': 'Theme', 'event_label': 'Dark Theme' }); applyTheme('minimal-dark'); event.preventDefault();">🌚 Dark</a>
+
+<!--      <li><a class="dropdown-item" href="#" onclick="applyTheme('colored'); event.preventDefault();">🌈 Colored</a></li>-->
+<!--      <li><a class="dropdown-item" href="#" onclick="applyTheme('minimal-light'); event.preventDefault();">⚪ Light</a></li>-->
+<!--      <li><a class="dropdown-item" href="#" onclick="applyTheme('minimal-dark'); event.preventDefault();">🌚 Dark</a></li>-->
+    </ul>
+  </div>
+
+  <!-- Save -->
+  <div class="dropdown w-100 disable-during-mode">
+    <button class="btn btn-primary dropdown-toggle btn-sm w-100 rounded-2"
+            id="saveDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="Save your mind map">
+      💾 Save
+    </button>
+    <ul class="dropdown-menu w-100">
+      <a class="dropdown-item" href="#" id="saveImageBtn"
+   onclick="gtag('event', 'click', { 'event_category': 'Save', 'event_label': 'Save PNG' });">🖼️ PNG</a>
+<a class="dropdown-item  disabled" href="#" id="savePdfBtn"
+   onclick="gtag('event', 'click', { 'event_category': 'Save', 'event_label': 'Save PDF' });">📄 PDF</a>
+<a class="dropdown-item disabled" href="#" id="saveFreeplaneBtn"
+   onclick="gtag('event', 'click', { 'event_category': 'Save', 'event_label': 'Save Freeplane (.mm)' });">🧠 Freeplane (.mm)</a>
+<a class="dropdown-item disabled" href="#" id="saveJsonBtn"
+   onclick="gtag('event', 'click', { 'event_category': 'Save', 'event_label': 'Save JSON' });">🔄 JSON</a>
+<a class="dropdown-item disabled" href="#" id="saveDocnBtn"
+   onclick="gtag('event', 'click', { 'event_category': 'Save', 'event_label': 'Save DOC' });">📄 DOC</a>
+
+<!--  <li><a class="dropdown-item" href="#" id="saveImageBtn">🖼️ PNG</a></li>-->
+<!--  <li><a class="dropdown-item disabled" href="#" id="savePdfBtn">📄 PDF</a></li>-->
+<!--  <li><a class="dropdown-item disabled" href="#" id="saveFreeplaneBtn">🧠 Freeplane (.mm)</a></li>-->
+<!--      <li><a class="dropdown-item disabled" href="#" id="saveJsonBtn">🔄 Json </a></li>-->
+<!--            <li><a class="dropdown-item disabled" href="#" id="saveDocnBtn">📄 DOC </a></li>-->
+
+</ul>
+
+  </div>
+
+  <!-- Tour -->
+  <button class="btn btn-secondary dropdown-toggle btn-sm w-100 rounded-2" onclick="showHelpTour()" title="Start guided tour">👋 Tour</button>
+</div>
+
+<button id="sidebarToggleArrow"
+        class="btn btn-outline-secondary"
+        data-bs-toggle="tooltip"
+        data-bs-placement="right"
+        title="Toggle Sidebar"
+        style="position: absolute; top: 5%; left: 100px; z-index: 1000; border-radius: 0 5px 5px 0;"
+        onclick="toggleSidebarArrow()">◀</button>
+
+<!-- Confirm/Cancel Buttons (Centered) -->
+<div id="reassignConfirmControls" class="d-none mt-2 d-flex justify-content-center gap-2">
+  <button id="confirmReassignBtn" class="btn btn-success btn-sm">✅ Confirm</button>
+  <button id="cancelReassignBtn" class="btn btn-danger btn-sm">❌ Cancel</button>
+</div>
+
+<!-- Warning (Centered) -->
+<div id="reassignWarning" class="text-danger d-none text-center fw-bold mt-2">
+  ⚠️ Cannot assign: Maximum depth level (5) reached.
+</div>
+
+<!-- Add Mode Hint (Centered and Neat) -->
+<div id="addNodeHint"
+     class="alert alert-success py-2 px-3 mb-3 d-none d-flex flex-column align-items-center text-center mx-auto"
+     role="alert"
+     style="font-size: 1.05rem; max-width: 500px;">
+  <div>🟢 Add Mode: Click a node to select it as the parent for your new child.</div>
+  <button id="cancelAddNodeBtn" class="btn btn-sm btn-outline-danger mt-2">❌ Cancel</button>
+</div>
+<!---->
+<div id="reassignHint" class="alert alert-info py-2 px-3 mb-3 text-center mx-auto" role="alert"
+     style="font-size: 1.05rem; max-width: 400px;">
+</div>
+
+
+<div id="cy-wrapper" style="position: relative; height: 100vh; width: 100vw; border: 1px solid #ccc; border-radius: 8px;">
+  <div id="cy" style="height: 100%; width: 100%;"></div>
+
+        <img src="{{ url_for('static', filename='images/logo.png') }}" class="cy-watermark">
+
+  <!-- Overlay controls -->
+  <div id="layout-label"
+       class="position-absolute mt-2 px-3 py-1 bg-primary text-dark rounded-pill fw-semibold shadow"
+       style="top: 10px; left: 15%; transform: translateX(-20%); z-index: 10;">
+    Layout: -
+  </div>
+  <div id="zoomControls" style="
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 999;
+  ">
+    <button id="zoomOutBtn" title="Zoom Out">−</button>
+    <button id="resetZoomBtn" title="Reset Zoom">⭕</button>
+    <button id="zoomInBtn" title="Zoom In">+</button>
+  </div>
+<!--<div class="dropdown" style="position: absolute; top: 7%; right: 80px; z-index: 9999;">-->
+<!--&lt;!&ndash;  <button class="btn btn-outline-secondary dropdown-toggle btn-sm rounded-2"&ndash;&gt;-->
+<!--&lt;!&ndash;          id="customizeDropdown"&ndash;&gt;-->
+<!--&lt;!&ndash;          data-bs-toggle="dropdown"&ndash;&gt;-->
+<!--&lt;!&ndash;          aria-expanded="false"&ndash;&gt;-->
+<!--&lt;!&ndash;          title="Customize edge and text colors"&ndash;&gt;-->
+<!--&lt;!&ndash;          style="white-space: nowrap;">&ndash;&gt;-->
+<!--&lt;!&ndash;    🧑‍🎨 Artistic Mode&ndash;&gt;-->
+<!--&lt;!&ndash;  </button>&ndash;&gt;-->
+
+
+<!--<button class="btn btn-outline-secondary dropdown-toggle btn-sm rounded-2"-->
+<!--          id="customizeDropdown"-->
+<!--          data-bs-toggle="dropdown"-->
+<!--          aria-expanded="false"-->
+<!--          title="Customize edge and text colors"-->
+<!--          style="white-space: nowrap;"  onclick="gtag('event', 'click', { 'event_category': 'Action', 'event_label': 'Artistic Mode Button' });">-->
+<!--    🧑‍🎨 Artistic Mode-->
+<!--  </button>-->
+<!--  <ul class="dropdown-menu p-3" style="min-width: 260px;" aria-labelledby="customizeDropdown">-->
+
+<!--    &lt;!&ndash; Edge Colors &ndash;&gt;-->
+<!--    <li class="fw-bold mb-2">Edge Colors:</li>-->
+<!--    <li class="d-flex flex-wrap gap-2 mb-3">-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#a3a3a3" style="background:#a3a3a3;"></span>-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#000000" style="background:#000000;"></span>-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#FFFFFF" style="background:#FFFFFF; border: 1px solid #ccc;"></span>-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#FF6B6B" style="background:#FF6B6B;"></span>-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#6C5CE7" style="background:#6C5CE7;"></span>-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#00B894" style="background:#00B894;"></span>-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#E17055" style="background:#E17055;"></span>-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#FAB1A0" style="background:#FAB1A0;"></span>-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#0984E3" style="background:#0984E3;"></span>-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#ff6b6b" style="background:#ff6b6b;"></span>   &lt;!&ndash; Red &ndash;&gt;-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#feca57" style="background:#feca57;"></span>   &lt;!&ndash; Yellow &ndash;&gt;-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#48dbfb" style="background:#48dbfb;"></span>   &lt;!&ndash; Sky Blue &ndash;&gt;-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#1dd1a1" style="background:#1dd1a1;"></span>   &lt;!&ndash; Mint &ndash;&gt;-->
+<!--      <span class="color-swatch" data-type="edge" data-color="#576574" style="background:#576574;"></span>   &lt;!&ndash; Slate Gray &ndash;&gt;-->
+
+<!--    </li>-->
+
+<!--    &lt;!&ndash; Font Colors &ndash;&gt;-->
+<!--    <li class="fw-bold mb-2">Font Colors:</li>-->
+<!--    <li class="d-flex flex-wrap gap-2">-->
+<!--      <span class="color-swatch" data-type="font" data-color="#000000" style="background:#000000;"></span>-->
+<!--      <span class="color-swatch" data-type="font" data-color="#FFFFFF" style="background:#FFFFFF; border: 1px solid #ccc;"></span>-->
+<!--      <span class="color-swatch" data-type="font" data-color="#D63031" style="background:#D63031;"></span>-->
+<!--      <span class="color-swatch" data-type="font" data-color="#0984E3" style="background:#0984E3;"></span>-->
+<!--      <span class="color-swatch" data-type="font" data-color="#6C5CE7" style="background:#6C5CE7;"></span>-->
+<!--      <span class="color-swatch" data-type="font" data-color="#00B894" style="background:#00B894;"></span>-->
+<!--      <span class="color-swatch" data-type="font" data-color="#E84393" style="background:#E84393;"></span>-->
+<!--      <span class="color-swatch" data-type="font" data-color="#2D3436" style="background:#2D3436;"></span>-->
+<!--      <span class="color-swatch" data-type="font" data-color="#FDCB6E" style="background:#FDCB6E;"></span>-->
+<!--      <span class="color-swatch" data-type="font" data-color="#ff4757" style="background:#ff4757;"></span>   &lt;!&ndash; Bright Red &ndash;&gt;-->
+<!--      <span class="color-swatch" data-type="font" data-color="#ffa502" style="background:#ffa502;"></span>   &lt;!&ndash; Orange &ndash;&gt;-->
+<!--      <span class="color-swatch" data-type="font" data-color="#3742fa" style="background:#3742fa;"></span>   &lt;!&ndash; Royal Blue &ndash;&gt;-->
+<!--      <span class="color-swatch" data-type="font" data-color="#2ed573" style="background:#2ed573;"></span>   &lt;!&ndash; Bright Green &ndash;&gt;-->
+<!--      <span class="color-swatch" data-type="font" data-color="#5352ed" style="background:#5352ed;"></span>   &lt;!&ndash; Indigo &ndash;&gt;-->
+
+<!--    </li>-->
+
+<!--  </ul>-->
+<!--</div>-->
+
+
+<div id="themeButtons" class="position-absolute top-0 end-0 m-3 d-flex flex-column gap-2" style="z-index: 10000;">
+  <!-- Theme Heading -->
+  <div class="text-center fw-bold small text-muted">Theme</div>
+
+  <!-- Theme Buttons -->
+  <button class="btn btn-sm btn-light shadow" onclick="applyTheme('colored')" title="Color Theme">🌈</button>
+  <button class="btn btn-sm btn-light shadow" onclick="applyTheme('minimal-light')" title="Light Theme">☀️</button>
+  <button class="btn btn-sm btn-light shadow" onclick="applyTheme('minimal-dark')" title="Dark Theme">🌙</button>
+
+  <!-- Layout Heading -->
+  <div class="mt-2 text-center fw-bold small text-muted">Layout</div>
+
+  <!-- Layout Buttons -->
+
+<button class="btn btn-sm btn-light shadow"
+   onclick="gtag('event', 'click', { 'event_category': 'Layout', 'event_label': 'Breadthfirst Layout' }); applyLayout('breadthfirst'); event.preventDefault();">📚 </button>
+
+<button class="btn btn-sm btn-light shadow"
+   onclick="gtag('event', 'click', { 'event_category': 'Layout', 'event_label': 'Dagre Layout' }); applyLayout('dagre'); event.preventDefault();">📊 </button>
+
+<button class="btn btn-sm btn-light shadow"
+   onclick="gtag('event', 'click', { 'event_category': 'Layout', 'event_label': 'Tree Layout' }); applyLayout('tree'); event.preventDefault();">🌳 </button>
+
+<button class="btn btn-sm btn-light shadow"
+   onclick="gtag('event', 'click', { 'event_category': 'Layout', 'event_label': 'SplitTree Layout' }); applyLayout('splitTree'); event.preventDefault();">↕️🌳 </button>
+<!--  <button class="btn btn-sm btn-light shadow" onclick="applyLayout('circle') "  title="circle">🔵</button>-->
+<!--  <button class="btn btn-sm btn-light shadow" onclick="applyLayout('concentric')"  title="concentric">⭕</button>-->
+<!--  <button class="btn btn-sm btn-light shadow" onclick="applyLayout('breadthfirst')" title="breadthfirst">📚</button>-->
+<!--  <button class="btn btn-sm btn-light shadow" onclick="applyLayout('dagre')" title="dagre">📊</button>-->
+<!--  <button class="btn btn-sm btn-light shadow" onclick="applyLayout('tree')" title="tree">🌳</button>-->
+<!--  <button class="btn btn-sm btn-light shadow" onclick="applyLayout('splitTree')" title="splitTree">↕️🌳</button>-->
+</div>
+
+  <!-- Spinner Overlay -->
+  <div id="spinner" class="spinner-overlay hide" style="z-index: 11000;">
+    <div class="spinner-content text-center p-4 rounded shadow-lg animate__animated animate__fadeIn">
+      <!-- Spinner & Progress -->
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <div class="progress" style="height: 20px; width: 300px; margin: 0 auto;">
+        <div id="spinnerProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">
+          <span id="spinnerPercentText">0%</span>
+        </div>
+      </div>
+      <p id="spinnerStatus" class="mt-3 text-dark fw-semibold">
+        Loading<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+      </p>
+    </div>
+
+    <!-- Floating Tip Box -->
+    <div id="loadingTip" class="tip-box animate__animated animate__fadeInUp">
+      <div class="d-flex align-items-start gap-2">
+        <span class="fs-4">💡</span>
+        <div>
+          <div class="fw-bold">Do you Know</div>
+          <div id="tipText" class="small">
+            You can switch layouts anytime
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!--</div>-->
+<!-- Infographic Modal -->
+<div class="modal fade" id="nodeInfoModal" tabindex="-1" aria-labelledby="nodeInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-primary shadow">
+
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="nodeInfoModalLabel">Node Title</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- View mode -->
+        <p id="nodeSummary" class="text-dark small"></p>
+
+        <!-- Edit mode -->
+<!--        <input type="text" id="nodeEditInput" class="form-control d-none">-->
+        <textarea id="nodeEditInput" class="form-control d-none" rows="5" style="resize: vertical;"></textarea>
+
+      </div>
+
+      <div class="modal-footer">
+        <button id="edit-node-button" class="btn btn-outline-primary">✏️ Edit</button>
+        <button id="save-node-button" class="btn btn-primary d-none">💾 Save</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+  <div id="toastContainer" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMessage">Action message here</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Node Modal -->
+<div class="modal fade" id="addNodeModal" tabindex="-1" aria-labelledby="addNodeModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addNodeModalLabel">Add New Node</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="newNodeLabel" class="form-control" placeholder="Enter node label" />
+      </div>
+      <div class="modal-footer">
+        <button id="confirmAddNodeBtn" class="btn btn-primary">Add Node</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Preview Modal -->
+<div
+  class="modal fade"
+  id="previewModal"
+  tabindex="-1"
+  aria-labelledby="previewModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="previewModalLabel">📝 Preview & Edit Extracted Text</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <textarea
+          id="textPreviewArea"
+          class="form-control"
+          rows="20"
+          style="white-space: pre-wrap; font-family: monospace;"
+          placeholder="Preview will appear here..."
+        ></textarea>
+        <!-- Add this below your textarea -->
+<p id="selectedFileName" class="text-muted small mt-2"></p>
+
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="previewCloseBtn"
+          data-bs-dismiss="modal"
+        >
+          Close
+        </button>
+       <button type="button" class="btn btn-success" onclick="generateMindMap('generateMindmap')">
+          🌳 Generate Mind Map
+        </button>
+
+        <button type="button" class="btn btn-primary" onclick="generateMindMap('summarizeOnly')">
+          📝 Summarize
+        </button>
+    </div>
+    </div>
+  </div>
+</div>
+<!-- Help / Tour Modal -->
+<div class="modal fade" id="helpTourModal" tabindex="-1" aria-labelledby="tourModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-info shadow">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="tourModalLabel">👋 Welcome! Quick Tour</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+            <div id="tourCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="10000">
+
+                <div class="carousel-inner">
+
+      <!-- Step 1 -->
+      <div class="carousel-item active text-center">
+        <h5>Step 1: Upload Content</h5>
+                <p class="text-muted">Upload a <code>.txt</code>, <code>.pdf</code>, or <code>.mm</code> Freeplane file, or paste content directly.</p>
+        <img src="{{ url_for('static', filename='images/guide/upload.jpg') }}" class="img-fluid rounded shadow mb-3" style="max-width: 600px;">
+      </div>
+
+      <!-- Step 2 -->
+      <div class="carousel-item text-center">
+        <h5>Step 2: Edit & Generate</h5>
+                <p class="text-muted">Review and edit your content if needed, then click “Generate” to create your map.</p>
+        <img src="{{ url_for('static', filename='images/guide/generate.png') }}" class="img-fluid rounded shadow mb-3" style="max-width: 600px;">
+      </div>
+
+      <!-- Step 3 -->
+      <div class="carousel-item text-center">
+        <h5>Step 3: View Generated Map</h5>
+                <p class="text-muted">Explore the generated map. You can switch layouts, add nodes, and customize freely.</p>
+        <img src="{{ url_for('static', filename='images/guide/circle.jpg') }}" class="img-fluid rounded shadow mb-3" style="max-width: 600px;">
+      </div>
+      <!--Export-->
+      <div class="carousel-item text-center">
+      <h5>Export Map </h5>
+  <!-- Simulated Toggle Button -->
+
+  <p class="text-muted mb-4">Download your mindmap as a PDF ,Freeplane (.mm) or PNG image to share, present, or
+archive your work with ease.</p>
+  <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/export.png" class="img-thumbnail" style="max-width: 500px;">
+      <p class="text-muted small mt-2">Save</p>
+    </div>
+     </div>
+  </div>
+      <!--Delete-->
+      <div class="carousel-item text-center">
+      <h5>Delete Node </h5>
+  <!-- Simulated Toggle Button -->
+
+  <p class="text-muted mb-4"> Remove unnecessary nodes with a hover-action delete option.</p>
+  <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/before-delete.jpg" class="img-thumbnail" style="max-width: 400px;">
+      <p class="text-muted small mt-2">Before</p>
+    </div>
+    <div>
+      <img src="static/images/guide/after-delete.jpg" class="img-thumbnail" style="max-width:400px;" >
+      <p class="text-muted small mt-2">After</p>
+    </div>
+     </div>
+  </div>
+      <!--UndoDelete-->
+      <div class="carousel-item text-center">
+      <h5>Undo-Delete Node </h5>
+  <!-- Simulated Toggle Button -->
+
+  <p class="text-muted mb-4"> Made a mistake? Instantly undo deletions to restore your changes.</p>
+  <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/undo1.jpg" class="img-thumbnail" style="max-width: 400px;">
+      <p class="text-muted small mt-2">Before</p>
+    </div>
+    <div>
+      <img src="static/images/guide/undo2.jpg" class="img-thumbnail" style="max-width: 400px;" >
+      <p class="text-muted small mt-2">After</p>
+    </div>
+     </div>
+  </div>
+
+      <!--Add Node-->
+      <div class="carousel-item text-center">
+      <h5>Add Node </h5>
+  <!-- Simulated Toggle Button -->
+
+  <p class="text-muted mb-4"> Quickly expand your mindmap by adding new child nodes to any
+selected parent node.</p>
+  <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/addnode1.jpg" class="img-thumbnail" style="max-width: 400px;">
+      <p class="text-muted small mt-2">Before</p>
+    </div>
+    <div>
+      <img src="static/images/guide/addnode2.jpg" class="img-thumbnail" style="max-width: 400px;" >
+      <p class="text-muted small mt-2">After</p>
+    </div>
+     </div>
+  </div>
+      <!--      Reassign node-->
+      <div class="carousel-item text-center">
+      <h5>Reassign Mode </h5>
+
+  <p class="text-muted mb-4">Effortlessly drag and drop any node to a new parent to reorganise
+ your map. Stay flexible as your thoughts evolve </p>
+  <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/reassign1.jpg" class="img-thumbnail" style="max-width: 400px;">
+      <p class="text-muted small mt-2">Before</p>
+    </div>
+    <div>
+      <img src="static/images/guide/reassign2.jpg" class="img-thumbnail" style="max-width: 400px;" >
+      <p class="text-muted small mt-2">After</p>
+    </div>
+     </div>
+  </div>
+<!--Add task-->
+      <div class="carousel-item text-center">
+  <h5>✍️ Add Task</h5>
+
+    <p class="text-muted mb-4">You can easily add new tasks in your mind map. Desgin your mindmap as you wish!</p>
+
+  <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/upload-submit.jpg" class="img-thumbnail" style="max-width: 300px;" >
+      <p class="text-muted small mt-2">Step 1 : Click Add Task button</p>
+    </div>
+    <div>
+      <img src="static/images/guide/task-1.jpg" class="img-thumbnail" style="max-width: 300px;" >
+      <p class="text-muted small mt-2">Step 2: Fill the Task details </p>
+    </div>
+    <div>
+      <img src="static/images/guide/task1-created.jpg" class="img-thumbnail" style="max-width: 300px;" >
+      <p class="text-muted small mt-2">Step 3: New task root created</p>
+    </div>
+      <div>
+      <img src="static/images/guide/task2-added.jpg" class="img-thumbnail" style="max-width: 300px;" >
+      <p class="text-muted small mt-2">Step 4: You can add new nodes and design your map as you wish</p>
+    </div>
+  </div>
+  </div>
+        <!--      Summarize-->
+            <div class="carousel-item text-center">
+        <h5>Summarize Content</h5>
+                <p class="text-muted">
+    Upload a <code>.txt</code> or <code>.pdf</code> file to generate a summarized <code>.docx</code> document — no mindmap required.
+  </p>
+        <img src="{{ url_for('static', filename='images/guide/summarize.png') }}" class="img-fluid rounded shadow mb-3" style="max-width: 600px;">
+    </div>
+
+     <!-- Choose a Layout-->
+      <div class="carousel-item text-center">
+  <h5>🎨 Choose a Layout</h5>
+
+   <p class="text-muted mb-4"> Switch between multiple layouts—Breadth-First, Circle, Concentric, and
+Dagre—to best fit your data and style of thinking</p>
+
+  <!-- Theme Previews -->
+  <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/bf.jpg" class="img-thumbnail" style="max-width: 200px;" alt="Breadthfirst Preview">
+      <p class="text-muted small mt-2">📚 Breadthfirst</p>
+    </div>
+    <div>
+      <img src="static/images/guide/dagre.jpg" class="img-thumbnail" style="max-width: 200px;" alt="Dagre Preview">
+      <p class="text-muted small mt-2">📊 Dagre</p>
+    </div>
+    <div>
+      <img src="static/images/guide/tree.jpg" class="img-thumbnail" style="max-width: 200px;" alt="Tree Preview">
+      <p class="text-muted small mt-2">🌳 Tree</p>
+    </div>
+  </div>
+<!--        concentric -->
+          <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/circle.jpg" class="img-thumbnail" style="max-width: 200px;" alt=" Circle Preview">
+      <p class="text-muted small mt-2">🔵 Circle</p>
+    </div>
+    <div>
+      <img src="static/images/guide/concentric.jpg" class="img-thumbnail" style="max-width: 200px;" alt=" Concentric Preview">
+      <p class="text-muted small mt-2">⭕ Concentric</p>
+    </div>
+  </div>
+</div>
+        <!-- Theme options -->
+      <div class="carousel-item text-center">
+  <h5>🎨 Choose a Theme</h5>
+
+  <p class="text-muted mb-4">Use the Theme Toggle button to switch between light, dark, and colored modes.</p>
+
+  <!-- Theme Previews -->
+  <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/light-theme.jpg" class="img-thumbnail" style="max-width: 300px;" alt="Light Theme Preview">
+      <p class="text-muted small mt-2">☀️ Light Theme</p>
+    </div>
+    <div>
+      <img src="static/images/guide/dark-theme.jpg" class="img-thumbnail" style="max-width: 300px;" alt="Dark Theme Preview">
+      <p class="text-muted small mt-2">🌙 Dark Theme</p>
+    </div>
+    <div>
+      <img src="static/images/guide/color-theme.jpg" class="img-thumbnail" style="max-width: 300px;" alt="Colored Theme Preview">
+      <p class="text-muted small mt-2">🎨 Colored Theme</p>
+    </div>
+  </div>
+  </div>
+<!--      Artisti cmode-->
+      <div class="carousel-item text-center">
+      <h5>Artistic Mode </h5>
+
+  <p class="text-muted mb-4"> Customize Node & Edge Colors</p>
+  <div class="d-flex justify-content-center flex-wrap gap-3">
+    <div>
+      <img src="static/images/guide/artistic_mode-before.jpg" class="img-thumbnail" style="max-width: 400px;">
+      <p class="text-muted small mt-2">Before</p>
+    </div>
+    <div>
+      <img src="static/images/guide/artistic_mode-after.jpg" class="img-thumbnail" style="max-width: 400px;" >
+      <p class="text-muted small mt-2">After</p>
+    </div>
+     </div>
+  </div>
+
+    </div>
+
+          <!-- Controls -->
+          <button class="carousel-control-prev" type="button" data-bs-target="#tourCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#tourCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-footer justify-content-between">
+  <button class="btn btn-outline-secondary" id="prevStepBtn">⬅️ Previous</button>
+  <button class="btn btn-outline-primary" id="nextStepBtn">Next ➡️</button>
+</div>
+
+        <button class="btn btn-secondary" data-bs-dismiss="modal">❌ Close</button>
+        <button class="btn btn-success" data-bs-dismiss="modal">🚀 Start Mapping</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addTaskModalLabel">Add Root Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeAddTaskModal()"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="taskTitle" class="form-control mb-2" placeholder="Task Title" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAddTaskModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="createTaskRoot()">Create Root</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-danger text-white">
+      <div class="modal-header">
+        <h5 class="modal-title" id="errorModalLabel">Input Error</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="errorModalBody">
+        <!-- Error message will be injected here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="bg-dark text-white text-center py-3 mt-5">
+  &copy; 2025 MapBuddyAI. All rights reserved.
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/mindmap.js') }}"></script>
+
+</body>
+</html>

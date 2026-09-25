@@ -1,0 +1,30 @@
+{
+  "grade": "Grade 1",
+  "subject": "Mathematics",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "numbers_and_counting": {
+      "display_name": "Numbers and Counting (Up to 20)",
+      "rules": [
+        "Numbers must be strictly limited from 0 up to 20.",
+        "Focus heavily on counting forward/backward, recognizing number words, and tracking one more / one less.",
+        "Addition and subtraction calculations must stay within 20.",
+        "Word problems must be simple, 1-step stories using physical objects."
+      ],
+      "heuristics": ["Object Counting Model", "Ten-Frame Visualization Matrix"],
+      "vocabulary": ["count on", "count back", "one more", "one less", "altogether", "total", "how many"],
+      "solution_steps": "1. Identify the starting number value. 2. Count forward (for addition) or backward (for subtraction) by the second amount. 3. Write down the final counting total."
+    },
+    "shapes_and_geometry": {
+      "display_name": "Geometry and 2D Shapes",
+      "rules": [
+        "Shapes are strictly limited to basic 2D flat geometric objects: circles, squares, rectangles, and triangles.",
+        "Include naming shapes, sorting them by size or color, and identifying simple symmetry in daily objects.",
+        "Include using positional language (e.g., next to, behind, inside)."
+      ],
+      "heuristics": ["Visual Sorting Grid", "Positional Directional Check"],
+      "vocabulary": ["circle", "square", "rectangle", "triangle", "next to", "above", "below", "inside"],
+      "solution_steps": "1. Look at the edges and properties of the shape visually. 2. Match it to its standard geometric label name. 3. State the correct classification or position."
+    }
+  }
+}

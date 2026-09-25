@@ -1,0 +1,30 @@
+{
+  "grade": "Grade 4",
+  "subject": "English",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "grammar_and_sentence_variety": {
+      "display_name": "Grammar (Pronoun Consistency and Prepositional Phrases)",
+      "rules": [
+        "Focus on possessive pronouns (mine, yours, his, hers, ours, theirs) and clear pronoun-antecedent agreement.",
+        "Introduce punctuating fronted adverbials with a comma (e.g., 'Suddenly, the lights went out.').",
+        "Sentences can extend into complex structures using sub-ordinating conjunctions like 'while', 'although', 'if', or 'since'.",
+        "Vocabulary must map onto CEFR A2 levels (Lexile 500L-700L)."
+      ],
+      "language_skills": ["Maintaining pronoun agreement", "Punctuating introductory time/place phrases"],
+      "vocabulary": ["belong", "theirs", "silently", "throughout", "although", "meanwhile"],
+      "solution_steps": "1. Identify the primary noun to ensure the replacing pronoun matches in number and gender. 2. Locate any time or place descriptive phrase starting at the front of the sentence. 3. Insert a comma right after that fronted phrase block."
+    },
+    "informational_text_comprehension": {
+      "display_name": "Non-Fiction / Informational Text Comprehension",
+      "rules": [
+        "Generate a continuous non-fiction passage (e.g., a simple report about an animal or a historical event) of 180 to 220 words.",
+        "Formulate questions requiring organizational navigation (e.g., interpreting subheadings, maps, or basic bullet points).",
+        "Include simple dictionary-definition matching questions based on contextual reading clues."
+      ],
+      "language_skills": ["Scanning for factual markers", "Deducing vocabulary meaning from context"],
+      "vocabulary": ["purpose", "heading", "information", "according to", "explain"],
+      "solution_steps": "1. Read the informational headings to trace where specific facts live. 2. Isolate the target text paragraph highlighted by the question prompt. 3. Extract the literal detail or trace the vocabulary clue to pick the right option."
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "grade": "Primary 2",
+  "subject": "Mathematics",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "numbers_to_1000": {
+      "display_name": "Numbers up to 1000",
+      "rules": [
+        "Numbers must be strictly within 1,000.",
+        "Introduce place value up to hundreds (hundreds, tens, ones).",
+        "Addition and subtraction within 1,000 with regrouping (carrying over).",
+        "Word problems can involve up to 2 steps."
+      ],
+      "heuristics": ["Part-Whole Model", "Comparison Model"],
+      "vocabulary": ["hundreds", "tens", "ones", "sum", "difference", "regrouping", "in all", "how many more"],
+      "solution_steps": "1. Align numbers into vertical column format by place value. 2. Add or subtract starting from the ones place, regrouping where necessary. 3. State the final value."
+    },
+    "multiplication_and_division": {
+      "display_name": "Multiplication and Division (Tables of 2, 3, 4, 5, 10)",
+      "rules": [
+        "Focus strictly on the multiplication tables of 2, 3, 4, 5, and 10.",
+        "Division problems must be exact divisions based on these tables (no remainders allowed at this level).",
+        "Word problems must focus on equal groups or sharing."
+      ],
+      "heuristics": ["Equal Groups Model", "Array Model"],
+      "vocabulary": ["times", "multiply", "divide", "equal groups", "shared equally", "each", "total number of"],
+      "solution_steps": "1. Count the number of groups and the number of items in each group. 2. Apply the specific multiplication or division fact. 3. Write out the final mathematical statement."
+    },
+    "fractions": {
+      "display_name": "Fractions (Introduction)",
+      "rules": [
+        "Focus purely on conceptual understanding and visual representations.",
+        "Limit denominators to 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12.",
+        "Include comparing and ordering unit fractions (e.g., 1/2 vs 1/4) using visual models.",
+        "Do NOT include addition or subtraction of fractions (this is saved for P3)."
+      ],
+      "heuristics": ["Visual Area Shading Model"],
+      "vocabulary": ["fraction", "equal parts", "half", "quarter", "shaded part", "unshaded part"],
+      "solution_steps": "1. Count the total number of equal parts to find the denominator. 2. Count the shaded parts to find the numerator. 3. Write out the final fractional symbol."
+    },
+    "metric_mass_and_volume": {
+      "display_name": "Mass and Volume (Basic Metric)",
+      "rules": [
+        "Units used: Mass (kg, g) and Volume/Capacity (litres, l).",
+        "Calculations must involve addition and subtraction of whole units.",
+        "Do NOT mix kg and g in the same question (no compound units like 1kg 200g, and no decimals)."
+      ],
+      "heuristics": ["Direct Scale Interpretation", "Measurement Bar Modeling"],
+      "vocabulary": ["kilogram (kg)", "gram (g)", "litre (l)", "heavier than", "lighter than", "holds more", "holds less"],
+      "solution_steps": "1. Extract values from the standard measurement metric scales. 2. Execute simple addition or subtraction calculation. 3. Append the correct singular unit symbol."
+    }
+  }
+}

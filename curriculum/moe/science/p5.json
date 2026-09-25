@@ -1,0 +1,55 @@
+{
+  "grade": "Primary 5",
+  "subject": "Science",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "systems_electricity": {
+      "display_name": "Systems (Electrical Circuits)",
+      "rules": [
+        "Identify components of a circuit: bulb, battery/cell, switch, wires.",
+        "Differentiate between complete circuits (current flows, bulb lights up) and incomplete circuits.",
+        "Test arrangements: Bulbs in series vs. parallel (brightness changes) and batteries in series vs. parallel.",
+        "Classify materials into electrical conductors (metals, graphite) and electrical insulators (plastic, wood, glass).",
+        "Avoid calculations of voltage, current, or resistance values (secondary school standard)."
+      ],
+      "process_skills": ["Predicting bulb brightness", "Circuit diagram analysis", "Troubleshooting broken circuits"],
+      "vocabulary": ["complete circuit", "incomplete circuit", "electrical conductor", "electrical insulator", "series arrangement", "parallel arrangement", "filament", "closed switch", "open switch"],
+      "solution_steps": "1. Trace the path of electrical current from the positive terminal to the negative terminal. 2. Verify if the circuit path is completely closed and unbroken. 3. Conclude whether the bulb will light up and analyze its comparative brightness."
+    },
+    "cycles_water": {
+      "display_name": "Cycles (Water and its Three States)",
+      "rules": [
+        "Understand the processes of melting, boiling, evaporation, condensation, and freezing.",
+        "Explain the water cycle as a continuous movement of water driven by heat from the Sun.",
+        "Focus on factors affecting the rate of evaporation (wind, temperature, exposed surface area).",
+        "Word problems frequently involve experimental setups analyzing condensation patterns (e.g., mist/water droplets forming on specific surfaces of a beaker)."
+      ],
+      "process_skills": ["Interpreting cooling/heating graphs", "Explaining environmental phenomena", "Identifying location of water droplets"],
+      "vocabulary": ["evaporation", "condensation", "gain heat", "lose heat", "water vapor", "water droplets", "rate of evaporation", "exposed surface area"],
+      "solution_steps": "1. Identify where heat energy is gained or lost in the setup (e.g., warm water vapor loses heat to a cooler inner surface). 2. Name the physical process occurring (condensation). 3. Explicitly state the final result, including exactly where the water droplets form."
+    },
+    "systems_cells": {
+      "display_name": "Systems (Cell Structure and Function)",
+      "rules": [
+        "Identify basic structures of plant and animal cells under a microscope.",
+        "State functions of: Cell membrane, Cytoplasm, Nucleus, Cell wall, and Chloroplasts.",
+        "Differentiate between plant cells (have cell wall, chloroplasts, fixed shape) and animal cells (no cell wall, no chloroplasts, irregular shape).",
+        "Do NOT introduce cell division mechanics, DNA profiling, or advanced organelles like mitochondria."
+      ],
+      "process_skills": ["Comparing cell structures", "Inferring function from missing parts (e.g., cell without chloroplasts cannot make food)"],
+      "vocabulary": ["cell membrane", "cell wall", "cytoplasm", "nucleus", "chloroplasts", "plant cell", "animal cell", "microscope"],
+      "solution_steps": "1. Identify the labeled components on the cell diagram. 2. Check for the presence or absence of a cell wall or chloroplasts to determine cell type. 3. Link the structure directly to its biological role."
+    },
+    "cycles_reproduction": {
+      "display_name": "Cycles (Plant and Human Reproduction)",
+      "rules": [
+        "Plant reproduction: Focus on flower parts (anther, filament, stigma, style, ovary, ovule) and the processes of pollination, fertilization, and seed dispersal (wind, water, animal, splitting).",
+        "Human reproduction: Identify male reproductive organs (testes, penis) and female reproductive organs (ovary, womb/uterus, fallopian tube). Understand fertilization in humans.",
+        "Compare the reproductive processes of plants and humans."
+      ],
+      "process_skills": ["Analyzing dispersal maps", "Tracing reproductive pathways"],
+      "vocabulary": ["pollination", "fertilization", "ovary", "ovule", "anther", "stigma", "seed dispersal", "womb", "testes", "sperm", "egg"],
+      "solution_steps": "1. Identify the method of pollination or dispersal based on physical structural traits shown. 2. Outline the steps from fusion of gametes to development. 3. Provide the logical biological explanation."
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "grade": "Primary 4",
+  "subject": "Science",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "cycles_in_plants_and_animals": {
+      "display_name": "Cycles (Life Cycles of Plants and Animals)",
+      "rules": [
+        "Compare 3-stage life cycles (e.g., chicken, frog, cockroach) and 4-stage life cycles (e.g., butterfly, mosquito, beetle).",
+        "Focus on similarities and differences between stages (e.g., whether the young resembles the adult, where they live, if they moult).",
+        "For plant cycles, track the stages of growth from seed to seedling to flowering adult plant.",
+        "Include the exact conditions required for seed germination (Water, Oxygen, Warmth - WOW)."
+      ],
+      "process_skills": ["Comparing", "Sequencing", "Analyzing experimental variables"],
+      "vocabulary": ["life cycle", "egg", "nymph", "larva", "pupa", "adult", "moult", "germination", "seedling", "conditions for growth"],
+      "solution_steps": "1. Identify the number of distinct stages in the animal or plant life cycle. 2. Point out the specific stage or trait being compared in the question diagram. 3. Conclude with a comparative scientific explanation statement."
+    },
+    "cycles_matter": {
+      "display_name": "Cycles (Matter)",
+      "rules": [
+        "Define matter as anything that has mass and occupies space.",
+        "Distinguish between the three states of matter: Solid, Liquid, and Gas.",
+        "Test properties of states: Solids have fixed shape and volume; Liquids have fixed volume but no fixed shape; Gases have no fixed shape and no fixed volume (can be compressed).",
+        "Word problems often involve experiments with plungers, syringes, or displacement of air/water in containers."
+      ],
+      "process_skills": ["Inferring", "Predicting", "Formulating experimental conclusions"],
+      "vocabulary": ["mass", "occupies space", "volume", "fixed shape", "compressed", "states of matter", "displacement"],
+      "solution_steps": "1. Identify the state of matter of the substance in the experimental setup. 2. Apply the rule of that state's properties (e.g., gases can be compressed, liquids take the shape of the container). 3. Explain the outcome of the experiment using these specific property rules."
+    },
+    "energy_light": {
+      "display_name": "Energy (Light and Shadows)",
+      "rules": [
+        "Understand that light travels in straight lines and can be reflected.",
+        "Explain how objects are seen (light from a source reflects off the object into our eyes).",
+        "Analyze shadow formation based on properties of materials: transparent (allows all light to pass), translucent (allows some light to pass), and opaque (blocks light completely).",
+        "Word problems often ask kids to calculate the size or shape of a shadow when an object moves closer to the light source or screen."
+      ],
+      "process_skills": ["Predicting changes", "Analyzing shadow graphs", "Deductions from experiments"],
+      "vocabulary": ["travels in straight lines", "reflection", "source of light", "opaque", "translucent", "transparent", "shadow formation"],
+      "solution_steps": "1. Trace the path of the light rays from the source to the object. 2. Apply the material property (opaque blocks light to form a sharp shadow). 3. Deduce how shifting the position of the light, object, or screen affects the final shadow size."
+    },
+    "energy_heat": {
+      "display_name": "Energy (Heat and Temperature)",
+      "rules": [
+        "Differentiate between heat (a form of energy) and temperature (a measure of hotness).",
+        "Enforce the fundamental law of heat transfer: Heat always flows from a hotter region/object to a colder region/object until they reach the same temperature.",
+        "Test effects of heat: expansion (gain heat) and contraction (lose heat).",
+        "Identify good conductors of heat (metals) vs. poor conductors/insulators of heat (wood, plastic, air, fabric)."
+      ],
+      "process_skills": ["Graph reading", "Evaluating materials based on heat conductivity", "Explaining physical phenomena"],
+      "vocabulary": ["temperature", "gain heat", "lose heat", "heat flow", "expansion", "contraction", "good conductor", "poor conductor", "insulator"],
+      "solution_steps": "1. Identify which object is hotter and which is colder to determine the direction of heat flow. 2. State whether a material gains heat or loses heat in the given scenario. 3. Connect the heat change to its physical effect (expansion, contraction, or a change in temperature) using precise phrasing."
+    }
+  }
+}

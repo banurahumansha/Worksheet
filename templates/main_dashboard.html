@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MapBuddyAI Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+
+    <!-- For summary-->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@7.6.0/build/index.js"></script>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f8f9fa;
+    }
+     /* Animated gradient background for hero */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .hero-bg {
+      background: linear-gradient(135deg, #6f42c1, #20c997, #6f42c1);
+      background-size: 300% 300%;
+      animation: gradientShift 15s ease infinite;
+    }
+
+      /* Spinner overlay positioned absolutely within #cy */
+    .spinner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+  opacity: 0;
+}
+
+
+/* Show and hide states */
+.spinner-overlay.show {
+  opacity: 1;
+  pointer-events: all; /* enable interaction blocking */
+  display: flex;
+}
+
+.spinner-overlay.hide {
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
+    .section-tile {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* Hover effect */
+.section-tile:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border: 2px solid #e5e7eb; /* light gray */
+
+}
+
+.section-tile:hover {
+  border-color: #0d6efd; /* Bootstrap primary */
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+}
+
+/* Selected card with glowing border */
+.section-tile.selected {
+  border: 3px solid #0d6efd; /* bright blue border */
+  box-shadow: 0 0 15px rgba(13, 110, 253, 0.6);
+  animation: glowBorder 1.5s infinite alternate;
+}
+
+/* Glow animation */
+@keyframes glowBorder {
+  0% {
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(13, 110, 253, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.6);
+  }
+}
+
+  </style>
+</head>
+<body>
+  <!-- Bootstrap Header -->
+  <div class="hero position-relative text-white hero-bg d-flex flex-column justify-content-center align-items-center"
+       style="overflow: hidden; min-height: 160px; padding: 40px 20px; text-align: center;">
+
+    <!-- Logo + App Name -->
+    <div class="d-flex align-items-center gap-3">
+      <img src="{{ url_for('static', filename='images/logo1.png') }}"
+           alt="MapBuddyAI Logo"
+           class="rounded-circle"
+           style="width: 60px; height: 60px; object-fit: cover;">
+      <h1 class="fw-bold mb-0" style="font-size: 2rem;">MapBuddyAI</h1>
+    </div>
+
+    <!-- Tagline -->
+    <p class="lead mb-3" style="font-size: 1.1rem; max-width: 600px;">
+      Read less, summarize faster, and map smarter with AI!
+    </p>
+
+    <!-- Waves -->
+    <svg class="position-absolute bottom-0 start-0 w-100" height="40" viewBox="0 0 1440 220" preserveAspectRatio="none" style="z-index: 1;">
+      <path fill="#fff" d="M0,224L60,197.3C120,171,240,117,360,112C480,107,600,149,720,181.3C840,213,960,235,1080,218.7C1200,203,1320,149,1380,122.7L1440,96L1440,320L0,320Z"></path>
+    </svg>
+
+    <!-- Sign Out Link -->
+    <a href="#"
+       class="btn btn-sm btn-outline-light position-absolute"
+       style="top: 10px; right: 20px;"
+       data-bs-toggle="modal"
+       data-bs-target="#signOutModal">
+      🔓 Sign Out
+    </a>
+  </div>
+
+  <!-- Sign Out Modal -->
+  <div class="modal fade" id="signOutModal" tabindex="-1" aria-labelledby="signOutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="signOutModalLabel">Sign Out</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to sign out?</p>
+          <p class="mt-2 text-muted">Before you go, we’d love your feedback!</p>
+          <a href="{{ url_for('feedback') }}" class="btn btn-link p-0">Share Feedback</a>
+        </div>
+        <div class="modal-footer">
+          <form action="{{ url_for('logout') }}" method="post" class="d-inline">
+            <button type="submit" class="btn btn-danger">Yes, sign out</button>
+          </form>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Cards -->
+  <div class="container py-5">
+    <div class="row g-4 justify-content-center">
+
+      <!-- Worksheet Card -->
+      <div class="col-md-4">
+        <div class="section-tile">
+          <h5>📄 Generate Worksheet</h5>
+          <p class="text-muted small mb-3">
+            Upload a file or paste topics to automatically generate worksheets for students.
+          </p>
+          <button class="btn btn-primary mt-auto w-100" onclick="worksheet()">Go</button>
+        </div>
+      </div>
+
+      <!-- Summarize Card -->
+      <div class="col-md-4">
+                <div class="p-3 rounded bg-white h-100 d-flex flex-column section-tile">
+<!--      <div class="p-3 border rounded bg-light h-100 d-flex flex-column">-->
+        <h5> Summary Card</h5>
+          <p class="text-muted fs-6 fw-semibold">
+
+          Upload a .txt, .pdf, .docx file to generate or summarize a mind map.</p>
+
+        <!-- File Upload Buttons -->
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <button class="btn btn-outline-primary btn-sm" onclick="triggerFileInput('text')">Text</button>
+          <button class="btn btn-outline-primary btn-sm ">PDF</button>
+          <button class="btn btn-outline-primary btn-sm" onclick="triggerFileInput('doc')">Doc</button>
+        </div>
+
+        <!-- File Name Display -->
+        <p id="fileNameDisplay" class="text-info mb-2">No file selected</p>
+
+        <!-- Hidden File Inputs -->
+        <input type="file" id="uploadText" accept=".txt" class="d-none">
+        <input type="file" id="uploadPDF" accept=".pdf" class="d-none">
+        <input type="file" id="uploadDoc" accept=".doc,.docx" class="d-none">
+
+        <!-- Submit Button -->
+        <button id="submitFileBtn" class="btn btn-primary mt-auto" disabled>✅ GO</button>
+      </div>
+      </div>
+
+      <!-- Mindmap Card -->
+      <div class="col-md-4">
+        <div class="section-tile">
+          <h5> Mind Map Generator</h5>
+          <p class="text-muted small mb-3">
+            Generate AI mind maps automatically or start from scratch with your topics.
+          </p>
+          <button class="btn btn-primary mt-auto w-100" onclick="mindmap()">Go</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+<!-- Preview Modal -->
+<div
+  class="modal fade"
+  id="previewModal"
+  tabindex="-1"
+  aria-labelledby="previewModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="previewModalLabel">📝 Preview & Edit Extracted Text</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <textarea
+          id="textPreviewArea"
+          class="form-control"
+          rows="20"
+          style="white-space: pre-wrap; font-family: monospace;"
+          placeholder="Preview will appear here..."
+        ></textarea>
+        <!-- Add this below your textarea -->
+<p id="selectedFileName" class="text-muted small mt-2"></p>
+
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="p reviewCloseBtn"
+          data-bs-dismiss="modal"
+        >
+          Close
+        </button>
+              <button type="button" class="btn btn-primary" onclick="generateMindMap('summarizeOnly')">
+          📝 Summarize
+        </button>
+    </div>
+    </div>
+  </div>
+</div>
+<!--Summary-->
+<div id="fullscreenSummary" class="d-none"
+     style="position:fixed; top:0; left:0; width:100%; height:100%;
+            background:#fff; overflow-y:auto; z-index:12000; padding:20px;">
+
+    <div style="display:flex; gap:12px; margin-bottom:20px;">
+        <button id="backToDashboardBtn"
+                style="padding:8px 16px; background:#ff6b6b; color:#fff;
+                       border:none; border-radius:5px; cursor:pointer;">
+            Back to Dashboard
+        </button>
+        <button id="saveSummaryBtn"
+                style="padding:8px 16px; background:#4CAF50; color:#fff;
+                       border:none; border-radius:5px; cursor:pointer;">
+            Save as Doc
+        </button>
+        <button id="saveSummaryImgBtn"
+                style="padding:8px 16px; background:#3498db; color:#fff;
+                       border:none; border-radius:5px; cursor:pointer;">
+            Save as Image
+        </button>
+    </div>
+
+    <div id="fullscreenSummaryContent"></div>
+</div>
+<!-- Spinner Overlay (moved outside wrapper) -->
+<div id="spinner" class="spinner-overlay hide" style="z-index: 11000;">
+
+  <!-- Floating Tip Box (top) -->
+  <div id="loadingTip" class="tip-box animate__animated animate__fadeInDown"
+       style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); ">
+    <div class="d-flex align-items-start gap-2">
+      <span class="fs-4">💡</span>
+      <div>
+        <div class="fw-bold">Do you Know</div>
+        <div id="tipText" class="small">
+          You can switch layouts anytime
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner Content (centered) -->
+  <div class="spinner-content text-center p-4 rounded shadow-lg animate__animated animate__fadeIn">
+    <div class="spinner-border text-primary mb-3" role="status"></div>
+    <div class="progress" style="height: 20px; width: 300px; margin: 0 auto;">
+      <div id="spinnerProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">
+        <span id="spinnerPercentText">0%</span>
+      </div>
+    </div>
+    <p id="spinnerStatus" class="mt-3 text-dark fw-semibold">
+      Loading<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+    </p>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-danger text-white">
+      <div class="modal-header">
+        <h5 class="modal-title" id="errorModalLabel">Input Error</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="errorModalBody">
+        <!-- Error message will be injected here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main_dashboard.js') }}"></script>
+
+</body>
+</html>

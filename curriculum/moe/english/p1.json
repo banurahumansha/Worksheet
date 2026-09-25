@@ -1,0 +1,30 @@
+{
+  "grade": "Primary 1",
+  "subject": "English",
+  "country_standard": "Singapore MOE",
+  "topics": {
+    "grammar_basics": {
+      "display_name": "Grammar (Foundational Components)",
+      "rules": [
+        "Focus on fundamental P1 grammar rules: Nouns (singular/plural), Pronouns (I, you, he, she, it, they, we), and Simple Present/Past Tense.",
+        "Sentence structures must be strictly simple (Single clause, e.g., 'The dog barks.').",
+        "Vocabulary must match early reader proficiency (Lexile range 200L-400L).",
+        "Provide 4 multiple-choice options with highly distinct distractors."
+      ],
+      "component_skills": ["Recognising singular and plural objects", "Matching basic pronouns to subjects"],
+      "vocabulary": ["cat", "cats", "runs", "ran", "boy", "girl", "happy", "big"],
+      "solution_steps": "1. Look at the picture or subject noun to see if it is one or many. 2. Identify the action timing word (today vs yesterday). 3. Select the correct base word matching the subject."
+    },
+    "vocabulary_cloze": {
+      "display_name": "Vocabulary Cloze (Word Bank)",
+      "rules": [
+        "Create 3 to 5 standalone simple sentences, each with one blank.",
+        "Provide a Word Bank box containing concrete nouns, verbs, and high-frequency adjectives.",
+        "Scenarios must relate to highly familiar child environments (e.g., bedroom, classroom, playground)."
+      ],
+      "component_skills": ["Contextual matching of concrete objects", "Basic sight-word recognition"],
+      "vocabulary": ["pencil", "teacher", "share", "playground", "hungry", "bright"],
+      "solution_steps": "1. Read the sentence clue to find out what object or action is missing. 2. Scan the Word Bank for the word that matches the meaning of the scenario. 3. Insert the word and check if it makes sense."
+    }
+  }
+}

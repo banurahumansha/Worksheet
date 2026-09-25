@@ -1,0 +1,30 @@
+{
+  "grade": "Grade 3",
+  "subject": "English",
+  "country_standard": "Cambridge International Primary",
+  "topics": {
+    "grammar_and_punctuation": {
+      "display_name": "Grammar (Parts of Speech and Punctuation Expansion)",
+      "rules": [
+        "Focus on regular/irregular past tenses, basic adverbs of time/manner, and standard collective nouns.",
+        "Introduce using speech marks (\" \") for direct speech statements.",
+        "Sentence lengths can feature compound structures linked via 'and', 'but', or 'because'.",
+        "Vocabulary must align to CEFR A1/A2 boundaries (Lexile 400L-600L)."
+      ],
+      "language_skills": ["Applying tense consistency", "Punctuating direct dialogue lines"],
+      "vocabulary": ["whispered", "quickly", "yesterday flock", "because", "suddenly"],
+      "solution_steps": "1. Locate the time marker in the sentence to check if the action already happened. 2. Identify the exact spoken words to frame inside the quotation marks. 3. Verify that the matching punctuation is inside the speech marks."
+    },
+    "reading_comprehension_narrative": {
+      "display_name": "Narrative Comprehension and Inference",
+      "rules": [
+        "Generate a continuous simple story passage of 150 to 180 words.",
+        "Formulate questions targeting literal recovery (who, what, where) and basic character emotion tracking.",
+        "Do NOT require deep structural text deconstruction (this is an upper primary target)."
+      ],
+      "language_skills": ["Skimming and scanning texts", "Inferring basic character feelings"],
+      "vocabulary": ["excited", "worried", "discovered", "journey", "clue"],
+      "solution_steps": "1. Read the comprehension passage to find the overall topic. 2. Scan the text for the specific keyword found in the question prompt. 3. Read the surrounding lines to find the literal answer or emotional clue."
+    }
+  }
+}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Editable Worksheet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+  <!-- Add your CSS here -->
+
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-10">
+    <h1 class="text-3xl font-bold text-gray-800">Editable Worksheet</h1>
+    <a href="{{ url_for('worksheet_input') }}"
+       class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow transition hover:scale-105">
+      Back to Form
+    </a>
+  </header>
+
+  <!-- Main container -->
+  <main class="flex-1 overflow-auto py-6">
+    <div class="w-full mx-auto px-4 flex gap-6">
+
+      <!-- Sidebar for images -->
+      <aside id="sidebar" class="w-64 bg-gray-100 p-4 overflow-y-auto border rounded hidden">
+        <h2 class="font-semibold mb-2">Image Library</h2>
+
+        <div class="mb-3 relative">
+          <div class="flex">
+            <input id="image-search-input" type="text"
+                   placeholder="Search images..."
+                   class="flex-1 border px-2 py-1 rounded-l">
+            <button id="image-search-btn"
+                    class="bg-blue-500 text-white px-3 rounded-r hover:bg-blue-600 transition">Search</button>
+          </div>
+
+          <div id="image-search-suggestions"
+               class="absolute left-0 right-0 bg-white border rounded shadow z-50 hidden"></div>
+        </div>
+
+        <div id="imageList" class="flex flex-col items-center gap-2"></div>
+      </aside>
+
+      <!-- Worksheet container -->
+      <div id="worksheet-container" class="bg-white p-6 rounded-lg shadow-md flex-1">
+
+        <!-- Non-editable header -->
+        <div id="worksheet-header" class="mb-6 p-4 border rounded bg-gray-100 font-semibold text-gray-700 whitespace-pre-wrap"></div>
+
+        <!-- Questions will be injected here -->
+        <div id="questions-list" class="space-y-4 mb-6"></div>
+
+        <!-- Download/export buttons -->
+        <div class="mt-6 text-center flex justify-center gap-4">
+          <button id="download-pdf" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded shadow transition transform hover:scale-105">
+            Download PDF
+          </button>
+          <button id="download-doc" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded shadow transition transform hover:scale-105">
+            Download DOC
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Image Editor Modal -->
+  <div id="imageEditorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded shadow-lg p-4 w-11/12 max-w-4xl flex gap-4 relative">
+
+      <!-- Sidebar toolbar -->
+      <div id="canvasToolbar" class="flex flex-col gap-2 w-24">
+        <h4 class="font-semibold text-center">Shapes</h4>
+        <button id="addRect" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Rect</button>
+        <button id="addCircle" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Circle</button>
+        <button id="addEllipse" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Ellipse</button>
+        <button id="addTriangle" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Triangle</button>
+        <button id="addPolygon" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Polygon</button>
+        <button id="addStar" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Star</button>
+        <button id="addLine" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Line</button>
+        <button id="addArrow" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Arrow</button>
+        <button id="pencilBtn" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Pencil</button>
+        <button id="eraserBtn" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Eraser</button>
+
+        <label for="brushSize" class="mt-2">Brush Size:</label>
+        <input type="range" id="brushSize" min="1" max="50" value="20">
+
+        <h4 class="font-semibold text-center mt-4">Text & Colors</h4>
+        <button id="addText" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Text</button>
+        <input type="color" id="fillColor" title="Fill color" class="w-full h-8 mt-1">
+        <input type="color" id="textColor" title="Text color" class="w-full h-8 mt-1">
+
+        <button id="deleteSelected" class="bg-red-400 text-white px-2 py-1 rounded hover:bg-red-500 mt-4">Delete</button>
+      </div>
+
+      <!-- Canvas area -->
+      <canvas id="modalCanvas" width="800" height="600" class="border border-gray-400 flex-1"></canvas>
+
+      <!-- Footer buttons -->
+      <div class="absolute bottom-4 right-4 flex gap-2">
+        <button id="cancelEditBtn" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+        <button id="saveEditBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white text-center py-3 mt-5">
+    &copy; 2025 MapBuddyAI. All rights reserved.
+  </footer>
+
+  <!-- Question card styling -->
+  <style>
+    .question-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .question-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    #questions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    #imageList img {
+      border-radius: 0.25rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    #imageList img:hover {
+      transform: scale(1.05);
+    }
+  </style>
+
+  <!-- JS -->
+  <script src="{{ url_for('static', filename='js/worksheet_output.js') }}"></script>
+</body>
+
+</html>

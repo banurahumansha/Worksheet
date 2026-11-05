@@ -38,7 +38,11 @@ import nltk
 from docx.shared import Inches, Pt
 from docx.oxml import OxmlElement, ns
 import base64, io, re, cairosvg
-
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 nltk.download('punkt', quiet=True)
 from nltk.tokenize import sent_tokenize
 load_dotenv()    # Load variables from .env
@@ -301,6 +305,7 @@ def reset_password(token):
         return redirect(url_for('login'))
 
     return render_template('reset_password.html')
+
 @app.route('/feedback')
 def feedback():
     flash("Before you go, we’d love your feedback! Share your thoughts below.")
@@ -1228,6 +1233,82 @@ def convert_to_cytoscape_format(node, parent_id=None, elements=None, level=0):
 
     return {"elements": elements}
 
+@app.route('/curriculum/topics', methods=['POST'])
+def get_curriculum_topics():
+    try:
+        data = request.get_json(silent=True) or {}
+
+        curriculum = data.get("curriculum", "").strip()
+        grade = data.get("grade", "").strip()
+        subject = data.get("subject", "").strip()
+
+        print("\n================================")
+        print("📚 CURRICULUM TOPICS REQUEST")
+        print("Curriculum:", curriculum)
+        print("Grade:", grade)
+        print("Subject:", subject)
+        print("================================")
+
+        # -----------------------------------------
+        # Load curriculum dynamically
+        # -----------------------------------------
+
+        curriculum_data = load_curriculum_json(
+            curriculum,
+            grade,
+            subject
+        )
+
+        if not curriculum_data:
+            return jsonify({
+                "success": False,
+                "error": "Curriculum could not be loaded.",
+                "curriculum": curriculum,
+                "grade": grade,
+                "subject": subject
+            }), 404
+
+        # -----------------------------------------
+        # Get topics from JSON
+        # -----------------------------------------
+
+        topics = curriculum_data.get("topics", {})
+
+        result = []
+
+        for topic_key, topic_data in topics.items():
+
+            if isinstance(topic_data, dict):
+                label = topic_data.get(
+                    "display_name",
+                    topic_key.replace("_", " ").title()
+                )
+            else:
+                label = topic_key.replace("_", " ").title()
+
+            result.append({
+                "key": topic_key,
+                "label": label
+            })
+
+        print("✅ Topics found:", len(result))
+
+        return jsonify({
+            "success": True,
+            "curriculum": curriculum,
+            "grade": grade,
+            "subject": subject,
+            "topics": result
+        })
+
+    except Exception as e:
+
+        print("❌ Error loading curriculum topics:", str(e))
+
+        return jsonify({
+            "success": False,
+            "error": "Failed to load curriculum topics."
+        }), 500
 @app.route('/extract_text_preview', methods=['POST'])
 def extract_text_preview():
     session["filename"] = "Manual Input"
@@ -1490,76 +1571,103 @@ def export_docx():
         )
     except Exception as e:
         return jsonify({"error": f"Failed to generate DOCX: {str(e)}"}), 500
-
 def normalize_math_latex_advanced(text: str) -> str:
     """
-    Normalize math expressions into LaTeX/MathJax-friendly format for web.
-    Wraps valid LaTeX portions in $...$ for MathJax rendering.
+    Safely normalize mathematical notation.
+
+    Gemini is responsible for generating MathJax notation.
+    This function only performs minimal cleanup and does not
+    modify currency or ordinary worksheet text.
     """
-    # 1. Exponents
-    text = re.sub(r'(\w+)\^(\d+)', r'\1^{\2}', text)
 
-    # 2. Fractions
-    def frac_repl(match):
-        return f"\\frac{{{match.group(1)}}}{{{match.group(2)}}}"
-    text = re.sub(r'\(\s*([^)]+)\s*\)\s*/\s*\(\s*([^)]+)\s*\)', frac_repl, text)
-    text = re.sub(r'(?<!\\frac\{)(\d+)\s*/\s*(\d+)', frac_repl, text)
+    if not text:
+        return text
 
-    # 3. Roots
-    text = re.sub(r'sqrt\(([^)]+)\)', r'\\sqrt{\1}', text)
-    text = re.sub(r'root\((\d+),\s*([^)]+)\)', r'\\sqrt[\1]{\2}', text)
+    text = text.strip()
 
-    # 4. Inequalities & arrows
-    text = text.replace('<=', '\\leq ').replace('>=', '\\geq ').replace('!=', '\\neq ').replace('->', '\\to ')
-
-    # 5. Multiplication
-    text = re.sub(r'(\d+|\w)\s*\*\s*(\d+|\w)', r'\1 \\times \2', text)
-
-    # 6. Vectors
-    text = re.sub(r'vector\s+([A-Za-z]+)', r'\\vec{\1}', text)
-
-    # 7. Matrices
-    def matrix_repl(match):
-        rows = [r.strip() for r in match.group(1).split(';')]
-        latex_rows = [' & '.join(r.split(',')) for r in rows]
-        return '\\begin{bmatrix}' + ' \\\\ '.join(latex_rows) + '\\end{bmatrix}'
-    text = re.sub(r'\[([^\[\]]+;[^\[\]]+)\]', matrix_repl, text)
-
-    # 8. Greek letters
-    greek = ['alpha','beta','gamma','delta','epsilon','zeta','eta','theta','iota','kappa','lambda',
-             'mu','nu','xi','omicron','pi','rho','sigma','tau','upsilon','phi','chi','psi','omega']
-    for g in greek:
-        text = re.sub(rf'\b{g}\b', f'\\\\{g}', text)
-
-    # 9. Trig/log functions
-    funcs = ['sin','cos','tan','csc','sec','cot','log','ln','exp']
-    for f in funcs:
-        text = re.sub(rf'\b{f}\b', f'\\\\{f}', text)
-
-    # 10. Probability / set symbols
-    replacements = {
-        '∩': r'\cap', '∪': r'\cup', '∈': r'\in', '∉': r'\notin',
-        '⊂': r'\subset', '⊆': r'\subseteq', '⊃': r'\supset',
-        '⊇': r'\supseteq', '∅': r'\emptyset'
-    }
-    for k, v in replacements.items():
-        text = text.replace(k, v)
-
-    # 11. Clean spacing around operators
-    text = re.sub(r'\s*([+\-*/=<>])\s*', r' \1 ', text)
-
-    # 12. Escape underscores used for blanks
-    text = text.replace('__', r'\_\_')
-    text = re.sub(r'_(\s|$)', r'\\_\1', text)
-
-    # 13. Add space in mixed numbers like 2\frac{1}{2}
-    text = re.sub(r'(\d)\s*\\frac', r'\1\,\\frac', text)
-    text = re.sub(r'_{2,}', r'\\underline{\\qquad}', text)
-
-    # 14. Wrap valid math expressions in $...$
-    text = wrap_math_for_web(text)
+    # ---------------------------------------------------------
+    # Keep Gemini-generated MathJax intact.
+    # Examples:
+    #   \( \frac{3}{4} \)
+    #   \( 5 \times 2 \)
+    #   \( x \leq 10 \)
+    #
+    # Do NOT:
+    #   - wrap the whole question
+    #   - modify $
+    #   - modify normal + - / = characters
+    # ---------------------------------------------------------
 
     return text
+# def normalize_math_latex_advanced(text: str) -> str:
+#     """
+#     Normalize math expressions into LaTeX/MathJax-friendly format for web.
+#     Wraps valid LaTeX portions in $...$ for MathJax rendering.
+#     """
+#     # 1. Exponents
+#     text = re.sub(r'(\w+)\^(\d+)', r'\1^{\2}', text)
+#
+#     # 2. Fractions
+#     def frac_repl(match):
+#         return f"\\frac{{{match.group(1)}}}{{{match.group(2)}}}"
+#     text = re.sub(r'\(\s*([^)]+)\s*\)\s*/\s*\(\s*([^)]+)\s*\)', frac_repl, text)
+#     text = re.sub(r'(?<!\\frac\{)(\d+)\s*/\s*(\d+)', frac_repl, text)
+#
+#     # 3. Roots
+#     text = re.sub(r'sqrt\(([^)]+)\)', r'\\sqrt{\1}', text)
+#     text = re.sub(r'root\((\d+),\s*([^)]+)\)', r'\\sqrt[\1]{\2}', text)
+#
+#     # 4. Inequalities & arrows
+#     text = text.replace('<=', '\\leq ').replace('>=', '\\geq ').replace('!=', '\\neq ').replace('->', '\\to ')
+#
+#     # 5. Multiplication
+#     text = re.sub(r'(\d+|\w)\s*\*\s*(\d+|\w)', r'\1 \\times \2', text)
+#
+#     # 6. Vectors
+#     text = re.sub(r'vector\s+([A-Za-z]+)', r'\\vec{\1}', text)
+#
+#     # 7. Matrices
+#     def matrix_repl(match):
+#         rows = [r.strip() for r in match.group(1).split(';')]
+#         latex_rows = [' & '.join(r.split(',')) for r in rows]
+#         return '\\begin{bmatrix}' + ' \\\\ '.join(latex_rows) + '\\end{bmatrix}'
+#     text = re.sub(r'\[([^\[\]]+;[^\[\]]+)\]', matrix_repl, text)
+#
+#     # 8. Greek letters
+#     greek = ['alpha','beta','gamma','delta','epsilon','zeta','eta','theta','iota','kappa','lambda',
+#              'mu','nu','xi','omicron','pi','rho','sigma','tau','upsilon','phi','chi','psi','omega']
+#     for g in greek:
+#         text = re.sub(rf'\b{g}\b', f'\\\\{g}', text)
+#
+#     # 9. Trig/log functions
+#     funcs = ['sin','cos','tan','csc','sec','cot','log','ln','exp']
+#     for f in funcs:
+#         text = re.sub(rf'\b{f}\b', f'\\\\{f}', text)
+#
+#     # 10. Probability / set symbols
+#     replacements = {
+#         '∩': r'\cap', '∪': r'\cup', '∈': r'\in', '∉': r'\notin',
+#         '⊂': r'\subset', '⊆': r'\subseteq', '⊃': r'\supset',
+#         '⊇': r'\supseteq', '∅': r'\emptyset'
+#     }
+#     for k, v in replacements.items():
+#         text = text.replace(k, v)
+#
+#     # 11. Clean spacing around operators
+#     text = re.sub(r'\s*([+\-*/=<>])\s*', r' \1 ', text)
+#
+#     # 12. Escape underscores used for blanks
+#     text = text.replace('__', r'\_\_')
+#     text = re.sub(r'_(\s|$)', r'\\_\1', text)
+#
+#     # 13. Add space in mixed numbers like 2\frac{1}{2}
+#     text = re.sub(r'(\d)\s*\\frac', r'\1\,\\frac', text)
+#     text = re.sub(r'_{2,}', r'\\underline{\\qquad}', text)
+#
+#     # 14. Wrap valid math expressions in $...$
+#     text = wrap_math_for_web(text)
+#
+#     return text
 
 def fix_mathjax_latex(text):
     if not text:
@@ -1574,18 +1682,29 @@ def fix_mathjax_latex(text):
 
 def wrap_math_for_web(text: str) -> str:
     """
-    Wraps text in $...$ only if it contains true LaTeX math commands.
-    """
-    text = text.strip()
+    Gemini already returns MathJax-ready LaTeX
+    using \\(...\\) and \\[...\\].
 
-    if (text.startswith("$") and text.endswith("$")) or (text.startswith("$$") and text.endswith("$$")):
+    Do not add mathematical delimiters here.
+    """
+    if not text:
         return text
 
-    # Detect real math patterns only
-    if re.search(r'\\frac|\\sqrt|\\times|\\cap|\\cup|\\in|\\notin|\\subset|\\supset|\\leq|\\geq', text):
-        return f"${text}$"
-
-    return text
+    return text.strip()
+# def wrap_math_for_web(text: str) -> str:
+#     """
+#     Wraps text in $...$ only if it contains true LaTeX math commands.
+#     """
+#     text = text.strip()
+#
+#     if (text.startswith("$") and text.endswith("$")) or (text.startswith("$$") and text.endswith("$$")):
+#         return text
+#
+#     # Detect real math patterns only
+#     if re.search(r'\\frac|\\sqrt|\\times|\\cap|\\cup|\\in|\\notin|\\subset|\\supset|\\leq|\\geq', text):
+#         return f"${text}$"
+#
+#     return text
 
 
 
@@ -1603,37 +1722,247 @@ def wrap_math(text: str) -> str:
         return f"${text}$"  # inline math
     else:
         return text  # treat as plain text
-def load_p3_maths_curriculum():
-    """
-    Temporary testing version.
-    Loads the Singapore MOE Primary 3 Mathematics JSON directly.
-    """
+def load_curriculum_json(curriculum, grade, subject):
+        """
+        Load curriculum JSON dynamically based on
+        curriculum + grade + subject.
+        """
 
-    path = (
-        Path(__file__).resolve().parent
-        / "curriculum"
-        / "moe"
-        / "maths"
-        / "p3.json"
-    )
+        # -----------------------------------------
+        # Curriculum folder
+        # -----------------------------------------
 
-    print("Curriculum JSON path:", path)
+        curriculum_key = curriculum.strip().lower()
 
-    if not path.exists():
-        print("Curriculum JSON NOT FOUND:", path)
-        return None
+        if "moe" in curriculum_key:
+            curriculum_folder = "moe"
 
+        elif "igcse" in curriculum_key:
+            curriculum_folder = "igcse"
+
+        else:
+            print("❌ Unsupported curriculum:", curriculum)
+            return None
+
+
+        # -----------------------------------------
+        # Subject folder
+        # -----------------------------------------
+
+        subject_key = subject.strip().lower()
+
+        subject_map = {
+            "math": "maths",
+            "maths": "maths",
+            "mathematics": "maths",
+
+            "science": "science",
+
+            "english": "english"
+        }
+
+        subject_folder = subject_map.get(subject_key)
+
+        if not subject_folder:
+            print("❌ Unsupported subject:", subject)
+            return None
+
+
+        # -----------------------------------------
+        # Grade
+        # -----------------------------------------
+
+        grade_key = grade.strip().lower()
+
+        if grade_key.startswith("primary"):
+            grade_key = grade_key.replace("primary", "").strip()
+
+        if grade_key.startswith("p"):
+            grade_number = grade_key[1:]
+        else:
+            grade_number = grade_key
+
+        # For now:
+        grade_file = f"p{grade_number}.json"
+
+
+        # -----------------------------------------
+        # Build path
+        # -----------------------------------------
+
+        path = (
+                Path(__file__).resolve().parent
+                / "curriculum"
+                / curriculum_folder
+                / subject_folder
+                / grade_file
+        )
+
+        print("\n📚 Curriculum JSON")
+        print("Curriculum folder:", curriculum_folder)
+        print("Subject folder:", subject_folder)
+        print("Grade file:", grade_file)
+        print("Full path:", path)
+
+
+        # -----------------------------------------
+        # Check file
+        # -----------------------------------------
+
+        if not path.exists():
+            print("❌ Curriculum JSON NOT FOUND:", path)
+            return None
+
+
+        # -----------------------------------------
+        # Load JSON
+        # -----------------------------------------
+
+        try:
+
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            print("✅ Curriculum JSON loaded successfully.")
+
+            return data
+
+        except Exception as e:
+
+            print("❌ Error loading curriculum JSON:", e)
+
+            return None
+
+@app.route('/generate_worksheet_test', methods=['POST'])
+
+def generate_worksheet_test():
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        # ============================================================
+        # LOAD TEST RESPONSE FROM PROJECT ROOT
+        # ============================================================
 
-        print("Curriculum JSON loaded successfully.")
-        return data
+        response_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "response.json"
+        )
+
+        print("\n================ TEST JSON RESPONSE ================")
+        print("Loading file:", response_path)
+
+        if not os.path.exists(response_path):
+            return jsonify({
+                "success": False,
+                "error": "response.json was not found in the project root."
+            }), 404
+
+        with open(response_path, "r", encoding="utf-8") as file:
+            worksheet_text = file.read()
+
+        print(worksheet_text)
+        print("====================================================\n")
+
+        # ============================================================
+        # CLEAN MARKDOWN CODE FENCES
+        # ============================================================
+
+        worksheet_text_clean = re.sub(
+            r"^\s*```(?:json)?\s*|\s*```\s*$",
+            "",
+            worksheet_text.strip(),
+            flags=re.IGNORECASE
+        )
+
+        # ============================================================
+        # FIND JSON OBJECT
+        # ============================================================
+
+        match = re.search(
+            r"\{.*\}",
+            worksheet_text_clean,
+            flags=re.DOTALL
+        )
+
+        if match:
+            worksheet_text_clean = match.group(0)
+        else:
+            return jsonify({
+                "success": False,
+                "error": "No valid JSON structure found in the test response.",
+                "raw_text": worksheet_text
+            }), 500
+
+        # ============================================================
+        # REMOVE COMMENTS
+        # ============================================================
+
+        worksheet_text_clean = re.sub(
+            r"//.*?$",
+            "",
+            worksheet_text_clean,
+            flags=re.MULTILINE
+        )
+
+        worksheet_text_clean = re.sub(
+            r"/\*.*?\*/",
+            "",
+            worksheet_text_clean,
+            flags=re.DOTALL
+        )
+
+        # ============================================================
+        # REMOVE TRAILING COMMAS
+        # ============================================================
+
+        worksheet_text_clean = re.sub(
+            r",\s*([\]}])",
+            r"\1",
+            worksheet_text_clean
+        )
+
+        # ============================================================
+        # LOAD / VALIDATE JSON
+        # ============================================================
+
+        try:
+            worksheet_json = json.loads(worksheet_text_clean)
+
+        except json.JSONDecodeError as e:
+            print("JSON structural corruption error:", str(e))
+
+            return jsonify({
+                "success": False,
+                "error": f"JSON structural corruption error: {str(e)}",
+                "raw_text": worksheet_text_clean
+            }), 500
+
+        # ============================================================
+        # SUCCESS
+        # ============================================================
+
+        print(
+            "Successfully loaded test worksheet:",
+            worksheet_json.get("header", "")
+        )
+
+        return jsonify({
+            "success": True,
+            "worksheet": worksheet_json
+        })
+
+    # ================================================================
+    # GLOBAL ERROR HANDLING
+    # ================================================================
 
     except Exception as e:
-        print("Error loading curriculum JSON:", e)
-        return None
+        print(traceback.format_exc())
+
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 @app.route('/generate_worksheet_Gemini', methods=['POST'])
+
 def generate_worksheet_Gemini():
     try:
         # ============================================================
@@ -1698,7 +2027,7 @@ def generate_worksheet_Gemini():
         # ------------------------------------------------------------
 
         question_types = request.form.getlist(
-            'questionTypes'
+            'questionTypes' , "mix"
         )
 
         num_questions = request.form.get(
@@ -2157,15 +2486,18 @@ def generate_worksheet_Gemini():
         # ============================================================
 
         curriculum_data = (
-            load_p3_maths_curriculum()
-        )
+            load_curriculum_json(
+                curriculum,
+                grade,
+                subject
+            )        )
 
         if not curriculum_data:
 
             return jsonify({
                 "success": False,
                 "error":
-                    "P3 Mathematics curriculum JSON "
+                    " curriculum JSON "
                     "could not be loaded."
             }), 500
 
@@ -2253,7 +2585,7 @@ def generate_worksheet_Gemini():
 
             print(
                 "No specific topic matched. "
-                "Sending complete P3 Maths curriculum JSON."
+                "Sending complete curriculum JSON."
             )
 
         # ============================================================
@@ -2605,7 +2937,17 @@ Use exactly this structure:
 }}
 
 Important:
-
+MATHEMATICAL NOTATION:
+- Return valid JSON only.
+- Do NOT use LaTeX.
+- Do NOT use MathJax delimiters such as $, $$, \(, \), \[, or \].
+- Use ordinary text symbols for mathematics.
+- Use × for multiplication.
+- Use ÷ for division.
+- Use ≤ and ≥ for inequalities.
+- Write fractions as words or simple forms such as 3/4.
+- Currency must use the normal $ symbol, e.g. $2.80, $10.00.
+- Never use $ as a mathematical delimiter.
 If the question type is not MCQ, the options array may be empty
 and distractor_analysis may be an empty object.
 
@@ -2804,26 +3146,162 @@ The final response MUST be valid JSON.
         # LOAD / VALIDATE JSON
         # ============================================================
 
+        # ============================================================
+        # PARSE GEMINI RESPONSE; RETRY ONCE IF JSON IS INVALID
+        # ============================================================
+
+        worksheet_text = (response.text or "").strip()
+
         try:
+            worksheet_json = json.loads(worksheet_text)
 
-            worksheet_json = json.loads(
-                worksheet_text_clean
-            )
-
-        except json.JSONDecodeError as e:
+        except (json.JSONDecodeError, TypeError) as first_error:
 
             print(
-                "JSON structural corruption error:",
-                str(e)
+                "Initial JSON parsing failed:",
+                str(first_error)
             )
+
+            # Retry once by asking Gemini to repair the JSON.
+            repair_prompt = f"""
+            The following response is a worksheet that contains invalid JSON syntax.
+
+            Repair the JSON syntax ONLY.
+
+            STRICT REQUIREMENTS:
+            1. Preserve all original questions, answers, values and wording.
+            2. Do not invent new questions or remove valid questions.
+            3. Do not summarize or shorten the worksheet.
+            4. Preserve the exact property names and their spelling.
+            5. The root MUST be a JSON object containing:
+               - "header": string
+               - "questions": array
+               - "answer_key": array
+            6. Every question must retain these fields:
+               - "id": string
+               - "text": string
+               - "type": string
+               - "options": array
+               - "distractor_analysis": object
+            7. Every answer_key entry must retain these fields:
+               - "id": string
+               - "answer": string
+               - "step_by_step_solution": string
+            8. Escape quotation marks and special characters correctly.
+            9. Return one complete, syntactically valid JSON object.
+            10. Do not include Markdown fences or explanations.
+
+            REQUIRED STRUCTURE:
+            {{
+                "header": "Worksheet title and instructions",
+                "questions": [
+                    {{
+                        "id": "Q1",
+                        "text": "Question text",
+                        "type": "Short Answer",
+                        "options": [],
+                        "distractor_analysis": {{}}
+                    }}
+                ],
+                "answer_key": [
+                    {{
+                        "id": "Q1",
+                        "answer": "Correct answer",
+                        "step_by_step_solution": "Solution steps"
+                    }}
+                ]
+            }}
+
+            Repair the following JSON. Return only the repaired JSON:
+
+            {worksheet_text}
+            """
+
+            try:
+                retry_response = (
+                    gemini_client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=repair_prompt,
+                        config=config
+                    )
+                )
+
+                repaired_text = (
+                        retry_response.text or ""
+                ).strip()
+
+                worksheet_json = json.loads(repaired_text)
+
+                print("JSON repair retry succeeded.")
+
+            except Exception as retry_error:
+
+                print(
+                    "JSON repair retry failed:",
+                    str(retry_error)
+                )
+
+                return jsonify({
+                    "success": False,
+                    "error": (
+                        "We couldn't prepare your worksheet "
+                        "correctly. Please try generating it again."
+                    )
+                }), 500
+
+        # ============================================================
+        # VALIDATE WORKSHEET STRUCTURE
+        # ============================================================
+
+        if (
+                not isinstance(worksheet_json, dict)
+                or not isinstance(worksheet_json.get("questions"), list)
+                or not isinstance(worksheet_json.get("answer_key"), list)
+        ):
+            print("Invalid worksheet JSON structure.")
 
             return jsonify({
                 "success": False,
-                "error":
-                    f"JSON structural corruption error: {str(e)}",
-                "raw_text":
-                    worksheet_text_clean
+                "error": (
+                    "The worksheet response was incomplete. "
+                    "Please try generating it again."
+                )
             }), 500
+
+        # ============================================================
+        # SUCCESS
+        # ============================================================
+
+        print(
+            "Successfully generated worksheet:",
+            worksheet_json.get("header", "")
+        )
+
+        return jsonify({
+            "success": True,
+            "worksheet": worksheet_json
+        })
+
+        # try:
+        #
+        #     worksheet_json = json.loads(
+        #         worksheet_text_clean
+        #     )
+        #
+        # except json.JSONDecodeError as e:
+        #
+        #     print(
+        #         "JSON structural corruption error:",
+        #         str(e)
+        #     )
+        #
+        #     return jsonify({
+        #         "success": False,
+        #         "error":
+        #             f"JSON structural corruption error: {str(e)}",
+        #         "raw_text":
+        #             worksheet_text_clean
+        #     }), 500
 
         # ============================================================
         # SUCCESS
@@ -4142,135 +4620,58 @@ class PDFWithHeader(FPDF):
     def __init__(self, title="", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title_text = title
+        self.show_brand_header = True
 
     def header(self):
-        # Title at the top center
-        self.set_font('Arial', 'B', 14)
-        # self.cell(0, 10, self.title_text, border=0, ln=1, align='C')
-        self.cell(0, 10, str(self.title_text or ""), border=0, ln=1, align='C')
-        self.ln(2)
+        # Repeating MapBuddyAI branding
+        self.set_y(10)
+
+        self.set_font("DejaVu", "B", 10)
+        self.set_text_color(105, 75, 190)
+        self.cell(0, 7, "MapBuddyAI", border=0, ln=1, align="L")
+
+        # Subtle divider
+        self.set_draw_color(220, 213, 245)
+        self.line(
+            self.l_margin,
+            self.get_y() + 1,
+            self.w - self.r_margin,
+            self.get_y() + 1
+        )
+
+        self.set_y(self.get_y() + 5)
 
     def footer(self):
-        self.set_y(-15)  # 15 mm from bottom
-        self.set_font('Arial', 'I', 10)
-        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
-def create_pdf_from_json(data):
-    title = str(data.get("title") or data.get("header", "Worksheet"))
-    pdf = PDFWithHeader(title=title)
-    pdf.add_page()
+        self.set_y(-15)
 
-    # Register Unicode fonts ONCE
-    pdf.add_font("DejaVu", "", "fonts/DejaVuSans.ttf", uni=True)
-    pdf.add_font("DejaVu", "B", "fonts/DejaVuSans-Bold.ttf", uni=True)
+        self.set_draw_color(220, 213, 245)
+        self.line(
+            self.l_margin,
+            self.get_y(),
+            self.w - self.r_margin,
+            self.get_y()
+        )
 
-    # ---------------- Student Info ----------------
-    student_name = data.get("student_name", "__________")
-    date = data.get("date", "__________")
-    grade = data.get("grade", "")
-    subject = data.get("subject", "")
-
-    pdf.set_font("DejaVu", "", 10)
-    pdf.cell(90, 8, f"Name: {student_name}", ln=0)
-    pdf.cell(0, 8, f"Date: {date}", ln=1)
-    pdf.cell(90, 8, f"Grade: {grade}", ln=0)
-    pdf.cell(0, 8, f"Subject: {subject}", ln=1)
-    pdf.ln(10)
-
-    # ---------------- Questions ----------------
-    for q in data.get("questions", []):
-        img_matches = re.findall(r'<img.*?src="(data:image/[^"]+)".*?>', q['text'])
-        text_only = re.sub(r'<img.*?>', '', q['text']).strip()
-
-        pdf.set_font("DejaVu", "", 10)
-        pdf.multi_cell(0, 8, f"{q['id']}. {text_only}")
-        pdf.ln(2)
-
-        # Options
-        if q.get("type") == "Match" and q.get("options"):
-            colA = q["options"].get("ColumnA", [])
-            colB = q["options"].get("ColumnB", [])
-            cell_width = 90
-            cell_height = 8
-
-            pdf.set_font("DejaVu", "B", 12)
-            pdf.cell(cell_width, cell_height, "Column A", ln=0)
-            pdf.cell(cell_width, cell_height, "Column B", ln=1)
-
-            pdf.set_font("DejaVu", "", 12)
-            for a, b in zip(colA, colB):
-                pdf.cell(cell_width, cell_height, a, ln=0)
-                pdf.cell(cell_width, cell_height, b, ln=1)
-            pdf.ln(3)
-
-        elif q.get("options"):
-            for opt in q["options"]:
-                pdf.multi_cell(0, 8, f"   - {opt}")
-            pdf.ln(2)
-
-        # Insert images
-        for img_data_url in img_matches:
-            header, encoded = img_data_url.split(",", 1)
-            img_bytes = base64.b64decode(encoded)
-
-            if header.startswith("data:image/svg+xml"):
-                png_bytes = cairosvg.svg2png(bytestring=img_bytes)
-                image = Image.open(BytesIO(png_bytes))
-            else:
-                image = Image.open(BytesIO(img_bytes))
-
-            temp_path = f"temp_{q['id']}.png"
-            image.save(temp_path)
-            pdf.image(temp_path, w=50)
-            os.remove(temp_path)
-
-        pdf.ln(5)
-
-    # ---------------- Answer Key ----------------
-    pdf.add_page()
-    pdf.set_font("DejaVu", "B", 14)
-    pdf.multi_cell(0, 10, "Answer Key")
-    pdf.ln(5)
-
-    pdf.set_font("DejaVu", "", 12)
-    for ans in data.get("answer_key", []):
-        pdf.multi_cell(0, 10, f"{ans['id']}:")
-        pdf.ln(2)
-
-        answer = ans.get("answer")
-
-        if isinstance(answer, dict) and "ColumnA" in answer and "ColumnB" in answer:
-            colA = answer["ColumnA"]
-            colB = answer["ColumnB"]
-            cell_width = 90
-            cell_height = 8
-
-            pdf.set_font("DejaVu", "B", 12)
-            pdf.cell(cell_width, cell_height, "Column A", ln=0)
-            pdf.cell(cell_width, cell_height, "Column B", ln=1)
-
-            pdf.set_font("DejaVu", "", 12)
-            for a, b in zip(colA, colB):
-                pdf.cell(cell_width, cell_height, a, ln=0)
-                pdf.cell(cell_width, cell_height, b, ln=1)
-            pdf.ln(3)
-
-        else:
-            pdf.multi_cell(0, 8, str(answer))
-            pdf.ln(2)
-
-    return pdf
-
+        self.set_y(-12)
+        self.set_font("DejaVu", "", 8)
+        self.set_text_color(130, 130, 145)
+        self.cell(0, 8, f"MapBuddyAI | Page {self.page_no()}", 0, 0, "C")
 # def create_pdf_from_json(data):
 #     title = str(data.get("title") or data.get("header", "Worksheet"))
 #     pdf = PDFWithHeader(title=title)
 #     pdf.add_page()
+#
+#     # Register Unicode fonts ONCE
+#     pdf.add_font("DejaVu", "", "fonts/DejaVuSans.ttf", uni=True)
+#     pdf.add_font("DejaVu", "B", "fonts/DejaVuSans-Bold.ttf", uni=True)
+#
 #     # ---------------- Student Info ----------------
 #     student_name = data.get("student_name", "__________")
 #     date = data.get("date", "__________")
 #     grade = data.get("grade", "")
 #     subject = data.get("subject", "")
 #
-#     pdf.set_font("Arial", '', 10)
+#     pdf.set_font("DejaVu", "", 10)
 #     pdf.cell(90, 8, f"Name: {student_name}", ln=0)
 #     pdf.cell(0, 8, f"Date: {date}", ln=1)
 #     pdf.cell(90, 8, f"Grade: {grade}", ln=0)
@@ -4281,13 +4682,8 @@ def create_pdf_from_json(data):
 #     for q in data.get("questions", []):
 #         img_matches = re.findall(r'<img.*?src="(data:image/[^"]+)".*?>', q['text'])
 #         text_only = re.sub(r'<img.*?>', '', q['text']).strip()
-#         pdf.add_font("DejaVu", "", "fonts/DejaVuSans.ttf", uni=True)
-#         pdf.add_font("DejaVu", "B", "fonts/DejaVuSans-Bold.ttf", uni=True)
 #
-#         # Set the default font for your PDF content
 #         pdf.set_font("DejaVu", "", 10)
-#
-#         # pdf.set_font("Arial", '', 12)
 #         pdf.multi_cell(0, 8, f"{q['id']}. {text_only}")
 #         pdf.ln(2)
 #
@@ -4297,14 +4693,17 @@ def create_pdf_from_json(data):
 #             colB = q["options"].get("ColumnB", [])
 #             cell_width = 90
 #             cell_height = 8
-#             pdf.set_font("Arial", 'B', 12)
+#
+#             pdf.set_font("DejaVu", "B", 12)
 #             pdf.cell(cell_width, cell_height, "Column A", ln=0)
 #             pdf.cell(cell_width, cell_height, "Column B", ln=1)
-#             pdf.set_font("Arial", '', 12)
+#
+#             pdf.set_font("DejaVu", "", 12)
 #             for a, b in zip(colA, colB):
 #                 pdf.cell(cell_width, cell_height, a, ln=0)
 #                 pdf.cell(cell_width, cell_height, b, ln=1)
 #             pdf.ln(3)
+#
 #         elif q.get("options"):
 #             for opt in q["options"]:
 #                 pdf.multi_cell(0, 8, f"   - {opt}")
@@ -4330,34 +4729,1117 @@ def create_pdf_from_json(data):
 #
 #     # ---------------- Answer Key ----------------
 #     pdf.add_page()
-#     pdf.set_font("Arial", 'B', 14)
+#     pdf.set_font("DejaVu", "B", 14)
 #     pdf.multi_cell(0, 10, "Answer Key")
 #     pdf.ln(5)
-#     pdf.set_font("Arial", '', 12)
 #
+#     pdf.set_font("DejaVu", "", 12)
 #     for ans in data.get("answer_key", []):
 #         pdf.multi_cell(0, 10, f"{ans['id']}:")
 #         pdf.ln(2)
 #
 #         answer = ans.get("answer")
+#
 #         if isinstance(answer, dict) and "ColumnA" in answer and "ColumnB" in answer:
 #             colA = answer["ColumnA"]
 #             colB = answer["ColumnB"]
 #             cell_width = 90
 #             cell_height = 8
-#             pdf.set_font("Arial", 'B', 12)
+#
+#             pdf.set_font("DejaVu", "B", 12)
 #             pdf.cell(cell_width, cell_height, "Column A", ln=0)
 #             pdf.cell(cell_width, cell_height, "Column B", ln=1)
-#             pdf.set_font("Arial", '', 12)
+#
+#             pdf.set_font("DejaVu", "", 12)
 #             for a, b in zip(colA, colB):
 #                 pdf.cell(cell_width, cell_height, a, ln=0)
 #                 pdf.cell(cell_width, cell_height, b, ln=1)
 #             pdf.ln(3)
+#
 #         else:
 #             pdf.multi_cell(0, 8, str(answer))
 #             pdf.ln(2)
 #
 #     return pdf
+
+import os
+import re
+import base64
+import tempfile
+import html
+
+from io import BytesIO
+from PIL import Image
+
+try:
+    import cairosvg
+except ImportError:
+    cairosvg = None
+
+
+# ============================================================
+# MAPBUDDYAI PDF CONFIGURATION
+# ============================================================
+
+PDF_FONT = "DejaVu"
+
+PAGE_MARGIN = 15
+BOTTOM_MARGIN = 18
+
+BODY_FONT_SIZE = 10
+QUESTION_FONT_SIZE = 10.5
+
+LINE_HEIGHT = 7
+WRITING_LINE_GAP = 8
+
+PURPLE = (112, 71, 235)
+BLUE = (55, 91, 220)
+LIGHT_PURPLE = (246, 243, 255)
+DARK_TEXT = (45, 48, 65)
+MUTED_TEXT = (105, 110, 125)
+LINE_COLOUR = (195, 195, 210)
+
+
+# ============================================================
+# 1. REGISTER FONTS AND PREPARE PDF
+# ============================================================
+
+def setup_worksheet_pdf(title):
+    """
+    Initialise the existing PDFWithHeader class.
+
+    Font registration happens before add_page(), because the
+    PDF header may use the registered font.
+    """
+
+    pdf = PDFWithHeader(title=title)
+
+    pdf.add_font(
+        PDF_FONT,
+        "",
+        "fonts/DejaVuSans.ttf",
+        uni=True
+    )
+
+    pdf.add_font(
+        PDF_FONT,
+        "B",
+        "fonts/DejaVuSans-Bold.ttf",
+        uni=True
+    )
+
+    pdf.set_margins(
+        PAGE_MARGIN,
+        PAGE_MARGIN,
+        PAGE_MARGIN
+    )
+
+    pdf.set_auto_page_break(
+        auto=True,
+        margin=BOTTOM_MARGIN
+    )
+
+    pdf.set_text_color(*DARK_TEXT)
+    pdf.set_draw_color(*LINE_COLOUR)
+
+    return pdf
+
+
+# ============================================================
+# 2. TEXT AND HTML HELPERS
+# ============================================================
+
+def clean_question_html(value):
+    """
+    Convert basic HTML question content into readable text.
+
+    Embedded Base64 images are removed separately before this
+    function is called.
+    """
+
+    if value is None:
+        return ""
+
+    text = str(value)
+
+    # Preserve basic paragraph breaks.
+    text = re.sub(
+        r"<\s*br\s*/?\s*>",
+        "\n",
+        text,
+        flags=re.IGNORECASE
+    )
+
+    text = re.sub(
+        r"</\s*(p|div|li)\s*>",
+        "\n",
+        text,
+        flags=re.IGNORECASE
+    )
+
+    # Remove remaining HTML tags.
+    text = re.sub(r"<[^>]+>", "", text)
+
+    # Decode HTML entities.
+    text = html.unescape(text)
+
+    # Normalise whitespace without removing paragraph breaks.
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    return text.strip()
+
+
+def extract_question_images(value):
+    """
+    Extract embedded Base64 image data URLs from question HTML.
+
+    Supports PNG, JPEG, GIF, WebP and SVG data URLs.
+    SVG conversion requires cairosvg.
+    """
+
+    if not value:
+        return []
+
+    pattern = (
+        r"""<img\b[^>]*?\bsrc\s*=\s*"""
+        r"""(["'])(data:image/.*?;base64,.*?)\1"""
+    )
+
+    matches = re.findall(
+        pattern,
+        str(value),
+        flags=re.IGNORECASE | re.DOTALL
+    )
+
+    return [match[1] for match in matches]
+
+
+def extract_instructions(data):
+    """
+    Get instructions from the dedicated JSON field.
+
+    If instructions are embedded in the header, extract them
+    as a fallback.
+    """
+
+    instructions = data.get("instructions")
+
+    if instructions:
+        return clean_question_html(instructions)
+
+    header = str(data.get("header") or "")
+
+    match = re.search(
+        r"Instructions\s*:\s*(.*)",
+        header,
+        flags=re.IGNORECASE | re.DOTALL
+    )
+
+    if match:
+        return clean_question_html(match.group(1))
+
+    return ""
+
+
+# ============================================================
+# 3. WORKSHEET TITLE AND INSTRUCTIONS
+# ============================================================
+
+def add_worksheet_title(pdf, data):
+    """
+    Render the worksheet title with automatic line wrapping.
+    Long titles are allowed to occupy multiple lines.
+    """
+
+    title = str(
+        data.get("title")
+        or data.get("header")
+        or "Worksheet"
+    ).strip()
+
+    # Remove an embedded Instructions section from the title.
+    title = re.split(
+        r"\s*Instructions\s*:",
+        title,
+        maxsplit=1,
+        flags=re.IGNORECASE
+    )[0].strip()
+
+    pdf.set_font(PDF_FONT, "B", 17)
+    pdf.set_text_color(*PURPLE)
+
+    pdf.multi_cell(
+        0,
+        8,
+        title,
+        align="L"
+    )
+
+    pdf.ln(2)
+
+    pdf.set_draw_color(*PURPLE)
+    pdf.set_line_width(0.7)
+
+    y = pdf.get_y()
+
+    pdf.line(
+        PAGE_MARGIN,
+        y,
+        pdf.w - PAGE_MARGIN,
+        y
+    )
+
+    pdf.set_line_width(0.2)
+    pdf.set_draw_color(*LINE_COLOUR)
+
+    pdf.ln(5)
+
+
+def add_instructions(pdf, instructions):
+    """
+    Render instructions inside a light purple section.
+
+    The box height is calculated from the wrapped text.
+    """
+
+    if not instructions:
+        return
+
+    pdf.set_font(PDF_FONT, "B", 10)
+    pdf.set_text_color(*PURPLE)
+
+    pdf.cell(
+        0,
+        6,
+        "INSTRUCTIONS",
+        ln=1
+    )
+
+    pdf.set_font(PDF_FONT, "", 9.5)
+    pdf.set_text_color(*DARK_TEXT)
+
+    # Use multi_cell's built-in wrapping.
+    pdf.multi_cell(
+        0,
+        5.5,
+        instructions
+    )
+
+    pdf.ln(4)
+
+
+# ============================================================
+# 4. STUDENT INFORMATION
+# ============================================================
+
+def add_student_info(pdf, data):
+    """
+    Render student details in a compact two-row layout.
+    """
+
+    student_name = str(
+        data.get("student_name") or "__________"
+    )
+
+    date = str(
+        data.get("date") or "__________"
+    )
+
+    grade = str(
+        data.get("grade") or ""
+    )
+
+    subject = str(
+        data.get("subject") or ""
+    )
+
+    pdf.set_font(PDF_FONT, "", 10)
+    pdf.set_text_color(*DARK_TEXT)
+
+    half_width = (pdf.w - pdf.l_margin - pdf.r_margin) / 2
+    pdf.cell(
+        half_width,
+        7,
+        f"Name: {student_name}",
+        ln=0
+    )
+
+    pdf.cell(
+        half_width,
+        7,
+        f"Date: {date}",
+        ln=1
+    )
+
+    pdf.cell(
+        half_width,
+        7,
+        f"Grade: {grade}",
+        ln=0
+    )
+
+    pdf.cell(
+        half_width,
+        7,
+        f"Subject: {subject}",
+        ln=1
+    )
+
+    pdf.ln(5)
+
+    pdf.set_draw_color(*LINE_COLOUR)
+
+    y = pdf.get_y()
+
+    pdf.line(
+        PAGE_MARGIN,
+        y,
+        pdf.w - PAGE_MARGIN,
+        y
+    )
+
+    pdf.ln(6)
+
+
+# ============================================================
+# 5. PAGE-SPACE MANAGEMENT
+# ============================================================
+
+def ensure_page_space(pdf, required_height):
+    """
+    Start a new page when the requested content will not fit.
+
+    Use this before rendering a question and its writing space.
+    """
+
+    usable_bottom = pdf.h - BOTTOM_MARGIN
+
+    if pdf.get_y() + required_height > usable_bottom:
+        pdf.add_page()
+
+
+# ============================================================
+# 6. QUESTION TYPE AND WRITING SPACE
+# ============================================================
+
+def get_writing_line_count(question):
+    q_type = str(question.get("type", "")).lower()
+    question_text = str(question.get("text", "")).lower()
+
+    if q_type in ["mcq", "match"]:
+        return 0
+
+    if q_type in ["fib", "fill in the blanks"]:
+        return 1
+
+    if any(word in question_text for word in ["word problem", "explain", "show your working"]):
+        return 4
+
+    return 3
+
+def add_writing_lines(pdf, count):
+    if count <= 0:
+        return
+
+    # Blank writing space only — no horizontal lines
+    pdf.ln(count * 25)
+# def add_writing_lines(pdf, count):
+#     if count <= 0:
+#         return
+# 
+#     pdf.set_draw_color(225, 225, 235)
+#     pdf.set_line_width(0.25)
+# 
+#     for _ in range(count):
+#         pdf.ln(7)
+#         y = pdf.get_y()
+#         pdf.line(
+#             pdf.l_margin,
+#             y,
+#             pdf.w - pdf.r_margin,
+#             y
+#         )
+# 
+#     pdf.ln(4)
+
+# ============================================================
+# 7. QUESTION OPTIONS
+# ============================================================
+
+def add_question_options(pdf, question):
+    """
+    Render MCQ, FIB and legacy Match question options.
+    """
+
+    options = question.get("options")
+
+    if not options:
+        return
+
+    pdf.set_font(PDF_FONT, "", BODY_FONT_SIZE)
+    pdf.set_text_color(*DARK_TEXT)
+
+    # Legacy matching question format.
+    if isinstance(options, dict):
+
+        column_a = options.get("ColumnA", [])
+        column_b\
+            = options.get("ColumnB", [])
+
+        if not column_a and not column_b:
+            return
+
+        ensure_page_space(pdf, 12)
+
+        column_width = pdf.epw / 2
+
+        pdf.set_font(PDF_FONT, "B", 10)
+        pdf.set_text_color(*BLUE)
+
+        pdf.cell(
+            column_width,
+            7,
+            "Column A",
+            ln=0
+        )
+
+        pdf.cell(
+            column_width,
+            7,
+            "Column B",
+            ln=1
+        )
+
+        pdf.set_font(PDF_FONT, "", 10)
+        pdf.set_text_color(*DARK_TEXT)
+
+        rows = max(
+            len(column_a),
+            len(column_b)
+        )
+
+        for index in range(rows):
+
+            a = (
+                str(column_a[index])
+                if index < len(column_a)
+                else ""
+            )
+
+            b = (
+                str(column_b[index])
+                if index < len(column_b)
+                else ""
+            )
+
+            # Allow each row to move to a new page.
+            ensure_page_space(pdf, 8)
+
+            pdf.cell(
+                column_width,
+                7,
+                a,
+                ln=0
+            )
+
+            pdf.cell(
+                column_width,
+                7,
+                b,
+                ln=1
+            )
+
+        pdf.ln(3)
+
+        return
+
+    # Standard list of MCQ or FIB options.
+    if isinstance(options, list):
+
+        for index, option in enumerate(options):
+
+            option_text = clean_question_html(option)
+
+            if not option_text:
+                continue
+
+            ensure_page_space(pdf, 8)
+
+            label = chr(65 + index) if index < 26 else str(index + 1)
+
+            pdf.set_x(PAGE_MARGIN + 8)
+
+            pdf.set_font(PDF_FONT, "", 10)
+
+            pdf.multi_cell(
+                0,
+                6,
+                f"{label}.  {option_text}"
+            )
+
+        pdf.ln(2)
+
+    # Support a single string option if encountered.
+    elif isinstance(options, str):
+
+        pdf.set_x(PAGE_MARGIN + 8)
+
+        pdf.multi_cell(
+            0,
+            6,
+            clean_question_html(options)
+        )
+
+        pdf.ln(2)
+
+
+# ============================================================
+# 8. EMBEDDED QUESTION IMAGES
+# ============================================================
+
+def add_question_images(pdf, question, image_data_urls):
+    """
+    Decode and render embedded Base64 images.
+
+    SVG files are converted to PNG when CairoSVG is available.
+    Temporary files are removed automatically.
+    """
+
+    for image_data_url in image_data_urls:
+
+        try:
+            header, encoded = image_data_url.split(",", 1)
+
+            image_bytes = base64.b64decode(
+                encoded,
+                validate=True
+            )
+
+            if "image/svg+xml" in header.lower():
+
+                if cairosvg is None:
+                    print(
+                        "Skipping SVG image: "
+                        "CairoSVG is not installed."
+                    )
+                    continue
+
+                image_bytes = cairosvg.svg2png(
+                    bytestring=image_bytes
+                )
+
+            # Verify and normalise the image.
+            with Image.open(BytesIO(image_bytes)) as source:
+                source.load()
+
+                image = source.convert("RGBA")
+
+                buffer = BytesIO()
+
+                image.save(
+                    buffer,
+                    format="PNG"
+                )
+
+                png_bytes = buffer.getvalue()
+
+            # Use a managed temporary file.
+            with tempfile.NamedTemporaryFile(
+                suffix=".png",
+                delete=False
+            ) as temp_file:
+
+                temp_path = temp_file.name
+                temp_file.write(png_bytes)
+
+            try:
+                ensure_page_space(pdf, 40)
+
+                pdf.image(
+                    temp_path,
+                    w=min(75, pdf.epw),
+                    keep_aspect_ratio=True
+                )
+
+                pdf.ln(4)
+
+            finally:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+
+        except Exception as exc:
+            # Keep a single invalid image from stopping the
+            # generation of the entire worksheet.
+            print(
+                f"Could not render image for question "
+                f"{question.get('id', '?')}: {exc}"
+            )
+
+
+# ============================================================
+# 9. RENDER A SINGLE QUESTION
+# ============================================================
+
+def add_question(pdf, question):
+    """
+    Render a complete question, options, images and writing lines.
+    """
+
+    question_id = question.get("id", "")
+    question_text_html = str(
+        question.get("text") or ""
+    )
+
+    # Extract images before stripping HTML.
+    image_data_urls = extract_question_images(
+        question_text_html
+    )
+
+    # Remove image tags from the printable question text.
+    text_without_images = re.sub(
+        r"<img\b[^>]*>",
+        "",
+        question_text_html,
+        flags=re.IGNORECASE | re.DOTALL
+    )
+
+    question_text = clean_question_html(
+        text_without_images
+    )
+
+    # Avoid splitting the question heading and its text.
+    ensure_page_space(pdf, 18)
+
+    # Question number.
+    pdf.set_font(
+        PDF_FONT,
+        "B",
+        QUESTION_FONT_SIZE
+    )
+
+    pdf.set_text_color(*PURPLE)
+
+    question_label = f"Q{question_id}."
+
+    pdf.cell(
+        13,
+        7,
+        question_label,
+        ln=0
+    )
+
+    # Question text.
+    pdf.set_font(
+        PDF_FONT,
+        "",
+        QUESTION_FONT_SIZE
+    )
+
+    pdf.set_text_color(*DARK_TEXT)
+
+    pdf.multi_cell(
+        0,
+        LINE_HEIGHT,
+        question_text
+    )
+
+    pdf.ln(2)
+
+    # Options.
+    add_question_options(
+        pdf,
+        question
+    )
+
+    # Images.
+    add_question_images(
+        pdf,
+        question,
+        image_data_urls
+    )
+
+    # Dedicated writing space.
+    writing_lines = get_writing_line_count(
+        question
+    )
+
+    if writing_lines > 0:
+
+        pdf.set_font(
+            PDF_FONT,
+            "B",
+            9
+        )
+
+        pdf.set_text_color(*MUTED_TEXT)
+
+        pdf.cell(
+            0,
+            6,
+            "Working / Answer:",
+            ln=1
+        )
+
+        pdf.set_text_color(*DARK_TEXT)
+
+        add_writing_lines(
+            pdf,
+            writing_lines
+        )
+
+    else:
+        pdf.ln(4)
+
+    # Subtle divider between questions.
+    pdf.set_draw_color(225, 225, 235)
+
+    y = pdf.get_y()
+
+    pdf.line(
+        PAGE_MARGIN,
+        y,
+        pdf.w - PAGE_MARGIN,
+        y
+    )
+
+    pdf.ln(6)
+
+
+# ============================================================
+# 10. ANSWER KEY
+# ============================================================
+
+def add_answer_key(pdf, data):
+    """
+    Render the answer key on a new page.
+
+    Supports:
+      - Standard text answers
+      - Matching question answers
+      - Step-by-step solutions
+    """
+
+    answers = data.get("answer_key", [])
+
+    if not answers:
+        return
+
+    # Always start the answer key on a new page.
+    pdf.add_page()
+
+    pdf.set_font(
+        PDF_FONT,
+        "B",
+        18
+    )
+
+    pdf.set_text_color(*PURPLE)
+
+    pdf.cell(
+        0,
+        10,
+        "Answer Key",
+        ln=1
+    )
+
+    pdf.set_font(
+        PDF_FONT,
+        "",
+        10
+    )
+
+    pdf.set_text_color(*MUTED_TEXT)
+
+    pdf.multi_cell(
+        0,
+        6,
+        "Answers and step-by-step solutions"
+    )
+
+    pdf.ln(5)
+
+    for answer_item in answers:
+
+        answer_id = answer_item.get("id", "")
+
+        answer = answer_item.get("answer", "")
+
+        solution = (
+            answer_item.get("step_by_step_solution")
+            or answer_item.get("solution")
+            or answer_item.get("explanation")
+            or ""
+        )
+
+        # Ensure the answer heading has room.
+        ensure_page_space(pdf, 18)
+
+        pdf.set_font(
+            PDF_FONT,
+            "B",
+            11
+        )
+
+        pdf.set_text_color(*BLUE)
+
+        pdf.cell(
+            0,
+            7,
+            f"Q{answer_id}",
+            ln=1
+        )
+
+        # Matching answers.
+        if (
+            isinstance(answer, dict)
+            and "ColumnA" in answer
+            and "ColumnB" in answer
+        ):
+
+            column_a = answer.get("ColumnA", [])
+            column_b = answer.get("ColumnB", [])
+
+            column_width = pdf.epw / 2
+
+            pdf.set_font(
+                PDF_FONT,
+                "B",
+                10
+            )
+
+            pdf.set_text_color(*PURPLE)
+
+            pdf.cell(
+                column_width,
+                7,
+                "Column A",
+                ln=0
+            )
+
+            pdf.cell(
+                column_width,
+                7,
+                "Column B",
+                ln=1
+            )
+
+            pdf.set_font(
+                PDF_FONT,
+                "",
+                10
+            )
+
+            pdf.set_text_color(*DARK_TEXT)
+
+            rows = max(
+                len(column_a),
+                len(column_b)
+            )
+
+            for index in range(rows):
+
+                a = (
+                    str(column_a[index])
+                    if index < len(column_a)
+                    else ""
+                )
+
+                b = (
+                    str(column_b[index])
+                    if index < len(column_b)
+                    else ""
+                )
+
+                ensure_page_space(pdf, 8)
+
+                pdf.cell(
+                    column_width,
+                    7,
+                    a,
+                    ln=0
+                )
+
+                pdf.cell(
+                    column_width,
+                    7,
+                    b,
+                    ln=1
+                )
+
+        else:
+
+            if isinstance(answer, (dict, list)):
+                answer_text = str(answer)
+            else:
+                answer_text = clean_question_html(answer)
+
+            pdf.set_font(
+                PDF_FONT,
+                "B",
+                10
+            )
+
+            pdf.set_text_color(*DARK_TEXT)
+
+            pdf.multi_cell(
+                0,
+                7,
+                f"Answer: {answer_text}"
+            )
+
+        # Step-by-step solution.
+        if solution:
+
+            ensure_page_space(pdf, 15)
+
+            pdf.ln(2)
+
+            pdf.set_font(
+                PDF_FONT,
+                "B",
+                9.5
+            )
+
+            pdf.set_text_color(*PURPLE)
+
+            pdf.cell(
+                0,
+                6,
+                "Step-by-step solution",
+                ln=1
+            )
+
+            pdf.set_font(
+                PDF_FONT,
+                "",
+                10
+            )
+
+            pdf.set_text_color(*DARK_TEXT)
+
+            if isinstance(solution, list):
+
+                for step_number, step in enumerate(
+                    solution,
+                    start=1
+                ):
+
+                    ensure_page_space(pdf, 8)
+
+                    step_text = clean_question_html(step)
+
+                    pdf.multi_cell(
+                        0,
+                        6,
+                        f"{step_number}. {step_text}"
+                    )
+
+            else:
+
+                solution_text = clean_question_html(
+                    solution
+                )
+
+                pdf.multi_cell(
+                    0,
+                    6,
+                    solution_text
+                )
+
+        pdf.ln(5)
+
+        # Subtle divider between answers.
+        pdf.set_draw_color(225, 225, 235)
+
+        y = pdf.get_y()
+
+        pdf.line(
+            PAGE_MARGIN,
+            y,
+            pdf.w - PAGE_MARGIN,
+            y
+        )
+
+        pdf.ln(5)
+
+
+# ============================================================
+# 11. MAIN PDF GENERATION FUNCTION
+# ============================================================
+
+def create_pdf_from_json(data):
+    """
+    Generate a MapBuddyAI worksheet PDF.
+
+    Expected data fields:
+        title / header
+        instructions
+        student_name
+        date
+        grade
+        subject
+        questions
+        answer_key
+    """
+
+    if not isinstance(data, dict):
+        raise ValueError(
+            "Worksheet data must be a dictionary."
+        )
+
+    title = str(
+        data.get("title")
+        or data.get("header")
+        or "Worksheet"
+    )
+
+    # Prepare PDF and register fonts.
+    pdf = setup_worksheet_pdf(title)
+
+    # First page.
+    pdf.add_page()
+
+    # Worksheet title.
+    add_worksheet_title(
+        pdf,
+        data
+    )
+
+    # Instructions.
+    instructions = extract_instructions(data)
+
+    add_instructions(
+        pdf,
+        instructions
+    )
+
+    # Student details.
+    add_student_info(
+        pdf,
+        data
+    )
+
+    # Questions.
+    questions = data.get("questions", [])
+
+    for question in questions:
+
+        if not isinstance(question, dict):
+            continue
+
+        add_question(
+            pdf,
+            question
+        )
+
+    # Answer key.
+    add_answer_key(
+        pdf,
+        data
+    )
+
+    return pdf
 def remove_table_borders(table):
     tbl = table._tbl
     tblPr = tbl.tblPr
@@ -4385,7 +5867,13 @@ def remove_table_borders(table):
                 tcBorders.append(border)
             tcPr.append(tcBorders)
 # Add your remove_table_borders function here
+def add_docx_writing_space(doc, count):
+    if count <= 0:
+        return
 
+    # Blank writing space only — no horizontal lines
+    paragraph = doc.add_paragraph("")
+    paragraph.paragraph_format.space_after = Pt(count * 35)
 def add_page_number(footer_para):
     run = footer_para.add_run("Page ")
     fldChar1 = OxmlElement('w:fldChar')
@@ -4400,7 +5888,6 @@ def add_page_number(footer_para):
 
     fldChar3 = OxmlElement('w:fldChar')
     fldChar3.set(qn('w:fldCharType'), 'end')
-
     run._r.append(fldChar1)
     run._r.append(instrText)
     run._r.append(fldChar2)
@@ -4410,23 +5897,66 @@ def create_docx_from_json(data):
     doc = Document()
     title = data.get("title") or data.get("header", "Worksheet")
 
-    # ---------------- Header & Footer ----------------
+    # ---------------- Page Setup ----------------
     section = doc.sections[0]
+    section.top_margin = Inches(0.8)
+    section.bottom_margin = Inches(0.7)
+    section.header_distance = Inches(0.35)
+    section.footer_distance = Inches(0.35)
 
-    # Header
+    # ---------------- Header: MapBuddyAI Branding ----------------
     header = section.header
     header_para = header.paragraphs[0]
-    header_para.text = title
-    header_para.style.font.size = Pt(14)
-    header_para.alignment = 1  # center
+    header_para.clear()
+    header_para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    header_para.paragraph_format.space_after = Pt(6)
 
-    # Footer with page number
+    brand_run = header_para.add_run("MapBuddyAI")
+    brand_run.bold = True
+    brand_run.font.name = "Arial"
+    brand_run.font.size = Pt(10)
+    brand_run.font.color.rgb = RGBColor(105, 75, 190)
+
+    # Subtle divider below header
+    pPr = header_para._p.get_or_add_pPr()
+    pBdr = OxmlElement("w:pBdr")
+    bottom_border = OxmlElement("w:bottom")
+    bottom_border.set(qn("w:val"), "single")
+    bottom_border.set(qn("w:sz"), "6")
+    bottom_border.set(qn("w:space"), "4")
+    bottom_border.set(qn("w:color"), "DCD5F5")
+    pBdr.append(bottom_border)
+    pPr.append(pBdr)
+
+    # ---------------- Footer: Divider and Page Number ----------------
     footer = section.footer
     footer_para = footer.paragraphs[0]
-    footer_para.alignment = 1  # center
-    add_page_number(footer_para)
+    footer_para.clear()
+    footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    footer_para.paragraph_format.space_before = Pt(4)
 
-    # ---------------- Student Info ----------------
+    # Divider above footer
+    pPr = footer_para._p.get_or_add_pPr()
+    pBdr = OxmlElement("w:pBdr")
+    top_border = OxmlElement("w:top")
+    top_border.set(qn("w:val"), "single")
+    top_border.set(qn("w:sz"), "6")
+    top_border.set(qn("w:space"), "4")
+    top_border.set(qn("w:color"), "DCD5F5")
+    pBdr.append(top_border)
+    pPr.append(pBdr)
+
+    footer_run = footer_para.add_run("MapBuddyAI  |  Page ")
+    footer_run.font.name = "Arial"
+    footer_run.font.size = Pt(8)
+    footer_run.font.color.rgb = RGBColor(130, 130, 145)
+
+    # Dynamic Word page number field
+    page_field = OxmlElement("w:fldSimple")
+    page_field.set(qn("w:instr"), "PAGE")
+    footer_para._p.append(page_field)
+
+    # ---------------- Student Information ----------------
     student_name = data.get("student_name", "__________")
     date = data.get("date", "__________")
     grade = data.get("grade", "")
@@ -4437,61 +5967,76 @@ def create_docx_from_json(data):
     table1.autofit = True
     table1.cell(0, 0).text = f"Name: {student_name}"
     table1.cell(0, 1).text = f"Date: {date}"
+    remove_table_borders(table1)
 
     # Grade / Subject row
     table2 = doc.add_table(rows=1, cols=2)
     table2.autofit = True
     table2.cell(0, 0).text = f"Grade: {grade}"
     table2.cell(0, 1).text = f"Subject: {subject}"
-
-    # Remove table borders
-    remove_table_borders(table1)
     remove_table_borders(table2)
 
-    # Spacing before title
+    # ---------------- Worksheet Title ----------------
     doc.add_paragraph("")
+
     title_para = doc.add_paragraph(title)
-    title_para.style = 'Heading 1'
-    title_para.space_after = Pt(12)
+    title_para.style = "Heading 1"
+    title_para.paragraph_format.space_after = Pt(12)
 
     # ---------------- Questions ----------------
     for q in data.get("questions", []):
-        img_matches = re.findall(r'<img.*?src="(data:image/[^"]+)".*?>', q['text'])
-        text_only = re.sub(r'<img.*?>', '', q['text']).strip()
-        para = doc.add_paragraph(f"{q['id']}. {text_only}")
-        para.space_after = Pt(12)
+        question_text = q.get("text", "")
 
+        img_matches = re.findall(
+            r'<img.*?src="(data:image/[^"]+)".*?>',
+            question_text
+        )
+
+        text_only = re.sub(r'<img.*?>', '', question_text).strip()
+
+        para = doc.add_paragraph(f"{q.get('id', '')}. {text_only}")
+        para.paragraph_format.space_after = Pt(12)
+        writing_space = get_writing_line_count(q)
+        add_docx_writing_space(doc, writing_space)
         # Match-type questions
         if q.get("type") == "Match" and q.get("options"):
             colA = q["options"].get("ColumnA", [])
             colB = q["options"].get("ColumnB", [])
             rows = max(len(colA), len(colB))
+
             table = doc.add_table(rows=1, cols=2)
             table.autofit = True
             remove_table_borders(table)
+
             table.cell(0, 0).text = "Column A"
             table.cell(0, 1).text = "Column B"
+
             for i in range(rows):
                 row_cells = table.add_row().cells
                 row_cells[0].text = colA[i] if i < len(colA) else ""
                 row_cells[1].text = colB[i] if i < len(colB) else ""
+
             doc.add_paragraph("")
-        # Other options
+
+        # Other question options
         elif q.get("options"):
             for opt in q["options"]:
                 opt_para = doc.add_paragraph(f"  - {opt}")
-                opt_para.space_after = Pt(6)
+                opt_para.paragraph_format.space_after = Pt(6)
 
-        # Images
+        # Embedded images
         for img_data_url in img_matches:
-            header, encoded = img_data_url.split(",", 1)
+            image_header, encoded = img_data_url.split(",", 1)
             img_bytes = base64.b64decode(encoded)
-            if header.startswith("data:image/svg+xml"):
+
+            if image_header.startswith("data:image/svg+xml"):
                 png_bytes = cairosvg.svg2png(bytestring=img_bytes)
                 image_stream = io.BytesIO(png_bytes)
             else:
                 image_stream = io.BytesIO(img_bytes)
+
             doc.add_picture(image_stream, width=Inches(2))
+
         doc.add_paragraph("")
 
     # ---------------- Answer Key ----------------
@@ -4499,28 +6044,104 @@ def create_docx_from_json(data):
     doc.add_heading("Answer Key", level=2)
 
     for ans in data.get("answer_key", []):
-        para = doc.add_paragraph(f"{ans['id']}:")
-        para.space_after = Pt(6)
+        para = doc.add_paragraph(f"{ans.get('id', '')}:")
+        para.paragraph_format.space_after = Pt(6)
+
         answer = ans.get("answer")
-        if isinstance(answer, dict) and "ColumnA" in answer and "ColumnB" in answer:
+
+        # Matching-question answers
+        if (
+            isinstance(answer, dict)
+            and "ColumnA" in answer
+            and "ColumnB" in answer
+        ):
             colA = answer["ColumnA"]
             colB = answer["ColumnB"]
             rows = max(len(colA), len(colB))
+
             table = doc.add_table(rows=1, cols=2)
             table.autofit = True
             remove_table_borders(table)
+
             table.cell(0, 0).text = "Column A"
             table.cell(0, 1).text = "Column B"
+
             for i in range(rows):
                 row_cells = table.add_row().cells
                 row_cells[0].text = colA[i] if i < len(colA) else ""
                 row_cells[1].text = colB[i] if i < len(colB) else ""
+
             doc.add_paragraph("")
+
         else:
-            ans_para = doc.add_paragraph(str(answer))
-            ans_para.space_after = Pt(6)
+            ans_para = doc.add_paragraph(str(answer or ""))
+            ans_para.paragraph_format.space_after = Pt(6)
 
     return doc
+
+
+# from docx.shared import Inches, Pt, RGBColor
+# from docx.enum.text import WD_ALIGN_PARAGRAPH
+# from docx.oxml import OxmlElement
+# from docx.oxml.ns import qn
+
+def add_bottom_border(paragraph, color="DCD5F5", size="6"):
+    """Add a subtle divider below a paragraph."""
+    p = paragraph._p
+    pPr = p.get_or_add_pPr()
+
+    pBdr = pPr.find(qn("w:pBdr"))
+    if pBdr is None:
+        pBdr = OxmlElement("w:pBdr")
+        pPr.append(pBdr)
+
+    bottom = OxmlElement("w:bottom")
+    bottom.set(qn("w:val"), "single")
+    bottom.set(qn("w:sz"), size)
+    bottom.set(qn("w:space"), "4")
+    bottom.set(qn("w:color"), color)
+
+    pBdr.append(bottom)
+
+
+def setup_docx_header_footer(section):
+    """Set up repeating MapBuddyAI branding and page numbering."""
+
+    # ---------------- Header ----------------
+    header = section.header
+    header_para = header.paragraphs[0]
+    header_para.clear()
+    header_para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    header_para.paragraph_format.space_before = Pt(0)
+    header_para.paragraph_format.space_after = Pt(6)
+
+    run = header_para.add_run("MapBuddyAI")
+    run.bold = True
+    run.font.name = "Arial"
+    run.font.size = Pt(10)
+    run.font.color.rgb = RGBColor(105, 75, 190)
+
+    add_bottom_border(header_para)
+
+    # ---------------- Footer ----------------
+    footer = section.footer
+    footer_para = footer.paragraphs[0]
+    footer_para.clear()
+    footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    footer_para.paragraph_format.space_before = Pt(4)
+    footer_para.paragraph_format.space_after = Pt(0)
+
+    add_bottom_border(footer_para, color="DCD5F5")
+
+    run = footer_para.add_run("MapBuddyAI  |  Page ")
+    run.font.name = "Arial"
+    run.font.size = Pt(8)
+    run.font.color.rgb = RGBColor(130, 130, 145)
+
+    # Dynamic page number field
+    page_field = OxmlElement("w:fldSimple")
+    page_field.set(qn("w:instr"), "PAGE")
+    footer_para._p.append(page_field)
 
 
 @app.route("/mindmap")
@@ -4682,7 +6303,11 @@ def suggest():
     # LOAD CURRICULUM
     # ==================================================
 
-    curriculum_data = load_p3_maths_curriculum()
+    curriculum_data = load_curriculum_json(
+    curriculum,
+    grade,
+    subject
+)
 
     if not curriculum_data:
         return jsonify({

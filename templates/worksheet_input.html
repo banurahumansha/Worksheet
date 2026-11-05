@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Teachers AI - Worksheet Generator</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js">
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            defer></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet"
+      href="{{ url_for('static', filename='css/input.css') }}">
+
+</head>
+
+
+    <body>
+    <!-- =========================================================
+         MAPBUDDY HEADER
+    ========================================================= -->
+
+    <header class="hero">
+
+        <!-- Header Actions -->
+        <div class="header-action header-home">
+            <a href="{{ url_for('main_dashboard') }}"
+               class="text-decoration-none">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </a>
+        </div>
+
+        <div class="header-action header-signout">
+            <a href="#"
+               class="text-decoration-none"
+               data-bs-toggle="modal"
+               data-bs-target="#signOutModal">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
+
+        <!-- Hero Content -->
+        <div class="hero-content">
+
+            <div class="hero-brand reveal-item">
+
+                <img src="{{ url_for('static', filename='images/logo2.png') }}"
+                     alt="MapBuddyAI Logo"
+                     class="hero-logo">
+
+<!--                <div class="hero-title">-->
+<!--                    MapBuddyAI-->
+<!--                </div>-->
+
+            </div>
+
+            <p class="hero-subtitle reveal-item">
+                Create personalised worksheets with AI — designed around your child's learning.
+            </p>
+
+            <div class="hero-decoration" aria-hidden="true">
+                <span class="hero-sparkle sparkle-one">✦</span>
+                <span class="hero-sparkle sparkle-two">✧</span>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- =========================================================
+         WORKSHEET FORM
+    ========================================================= -->
+
+    <main class="worksheet-wrapper">
+
+      <div class="page-heading reveal-item">
+
+    <h2>
+        Create a Worksheet
+    </h2>
+
+    <p>
+        Choose a few options and let AI create the questions for you.
+    </p>
+
+</div>
+
+
+    <form id="worksheetForm"
+          action="{{ url_for('generate_worksheet_Gemini') }}"
+          method="POST"
+          enctype="multipart/form-data">
+
+    <div class="worksheet-carousel">
+         <!-- Progress -->
+<div class="carousel-progress">
+
+    <div class="progress-step active" data-step="1">
+        <span class="progress-number">1</span>
+        <span class="progress-label">Basics</span>
+    </div>
+
+    <div class="progress-line"></div>
+
+    <div class="progress-step" data-step="2">
+        <span class="progress-number">2</span>
+        <span class="progress-label">Topic</span>
+    </div>
+
+    <div class="progress-line"></div>
+
+    <div class="progress-step" data-step="3">
+        <span class="progress-number">3</span>
+        <span class="progress-label">Settings</span>
+    </div>
+
+</div>
+<!-- =========================================================
+     STEP 1
+     TELL US ABOUT YOUR CHILD'S LEARNING
+========================================================= -->
+            <div class="carousel-viewport">
+                <div class="carousel-track">
+
+                    <section class="worksheet-step active"
+                             id="worksheet-step-1"
+                             data-step="1">
+
+                        <div class="step-heading">
+
+                            <div class="step-icon">
+                                <i class="fa-solid fa-child-reaching"></i>
+                            </div>
+
+                            <div>
+                                <span class="step-eyebrow">
+                                    STEP 1
+                                </span>
+
+                                <h2>
+                                    Tell us about your child's learning
+                                </h2>
+
+                                <p>
+                                    Choose the curriculum, level and subject to get started.
+                                </p>
+                            </div>
+
+                        </div>
+
+
+                        <!-- =====================================================
+                             CURRICULUM
+                        ====================================================== -->
+
+                        <div class="form-section">
+
+                            <div class="section-label">
+
+                                <span class="section-number">
+                                    1
+                                </span>
+
+                            <div class="section-label-content">
+                                    <strong>
+                                        Curriculum
+                                         <span class="required">
+                                    *
+                                </span>
+                                    </strong>
+
+
+                                        <span class="section-description">
+
+                                        Choose the curriculum your child follows
+                                        </span>
+
+                                </div>
+
+
+
+                            </div>
+
+
+                            <div class="choice-grid curriculum-grid">
+
+                                <!-- Singapore MOE -->
+
+                                <label class="choice-card curriculum-card">
+
+                                    <input type="radio"
+                                           name="curriculum"
+                                           value="Singapore MOE Primary"
+                                           required>
+
+                                    <div class="choice-icon">
+                                        🇸🇬
+                                    </div>
+
+                                    <div class="choice-content">
+
+                                        <div class="choice-title">
+                                            Singapore MOE
+                                        </div>
+
+                                        <div class="choice-description">
+                                            Primary 1 – Primary 6
+                                        </div>
+
+                                    </div>
+
+                                    <span class="selected-check">
+                                        ✓
+                                    </span>
+
+                                </label>
+
+
+                                <!-- IGCSE -->
+
+                                <label class="choice-card curriculum-card">
+
+                                    <input type="radio"
+                                           name="curriculum"
+                                           value="IGCSE Primary">
+
+                                    <div class="choice-icon">
+                                        🌍
+                                    </div>
+
+                                    <div class="choice-content">
+
+                                        <div class="choice-title">
+                                            IGCSE
+                                        </div>
+
+                                        <div class="choice-description">
+                                            Primary level
+                                        </div>
+
+                                    </div>
+
+                                    <span class="selected-check">
+                                        ✓
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =====================================================
+                             PRIMARY LEVEL
+                        ====================================================== -->
+
+                        <div class="form-section">
+
+                            <div class="section-label">
+
+                                <span class="section-number">
+                                    2
+                                </span>
+
+                         <div class="section-label-content">
+                                    <strong>
+                                        Primary level
+                                          <span class="required">
+                                    *
+                                </span>
+                                    </strong>
+                                    <span class="section-description">
+
+                                        Which level is your child in?
+
+                                    </span>
+                                </div>
+
+                            </div>
+
+
+                            <div class="choice-grid six">
+
+                                {% for grade in range(1, 7) %}
+
+                                <label class="choice-card grade-card">
+
+                                    <input type="radio"
+                                           name="grade"
+                                           value="{{ grade }}"
+                                           required>
+
+                                    <div class="grade-number">
+                                        P{{ grade }}
+                                    </div>
+
+                                    <div class="grade-name">
+                                        Primary {{ grade }}
+                                    </div>
+
+                                    <span class="selected-check">
+                                        ✓
+                                    </span>
+
+                                </label>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =====================================================
+                             SUBJECT
+                        ====================================================== -->
+
+                        <div class="form-section">
+
+                            <div class="section-label">
+
+                                <span class="section-number">
+                                    3
+                                </span>
+
+                                <div class="section-label-content">
+
+                                    <strong>
+                                        Subject
+                                          <span class="required">
+                                    *
+                                </span>
+                                    </strong>
+
+                                    	<span class="section-description">
+
+                                        What would you like your child to practise?
+                                    </span>
+                                </div>
+                            </div>
+
+
+                            <div class="choice-grid subjects">
+
+                                <!-- Mathematics -->
+
+                                <label class="choice-card">
+
+                                    <input type="radio"
+                                           name="subject"
+                                           value="Math"
+                                           required>
+
+                                    <div class="choice-icon">
+                                        🔢
+                                    </div>
+
+                                    <div class="choice-title">
+                                        Mathematics
+                                    </div>
+
+                                    <span class="selected-check">
+                                        ✓
+                                    </span>
+
+                                </label>
+
+
+                                <!-- Science -->
+
+                                <label class="choice-card">
+
+                                    <input type="radio"
+                                           name="subject"
+                                           value="Science">
+
+                                    <div class="choice-icon">
+                                        🔬
+                                    </div>
+
+                                    <div class="choice-title">
+                                        Science
+                                    </div>
+
+                                    <span class="selected-check">
+                                        ✓
+                                    </span>
+
+                                </label>
+
+
+                                <!-- English -->
+
+                                <label class="choice-card">
+
+                                    <input type="radio"
+                                           name="subject"
+                                           value="English">
+
+                                    <div class="choice-icon">
+                                        📖
+                                    </div>
+
+                                    <div class="choice-title">
+                                        English
+                                    </div>
+
+                                    <span class="selected-check">
+                                        ✓
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =====================================================
+                             STEP 1 ACTION
+                        ====================================================== -->
+
+    <!--                    <div class="step-actions">-->
+
+    <!--                        <button type="button"-->
+    <!--                                id="step1-next"-->
+    <!--                                class="step-next">-->
+
+    <!--                            Continue-->
+
+    <!--                            <i class="fa-solid fa-arrow-right"></i>-->
+
+    <!--                        </button>-->
+
+    <!--                    </div>-->
+
+                    </section>
+
+
+    <!-- =========================================================
+         STEP 2
+         CHOOSE WHAT TO PRACTISE
+    ========================================================= -->
+
+                    <section class="worksheet-step"
+                             id="worksheet-step-2"
+                             data-step="2">
+
+                        <div class="step-heading">
+
+                            <div class="step-icon">
+                                <i class="fa-solid fa-bullseye"></i>
+                            </div>
+
+                            <div>
+                                <span class="step-eyebrow">
+                                    STEP 2
+                                </span>
+
+                                <h2>
+                                    Choose what to practise
+                                </h2>
+
+                                <p>
+                                    Select a topic and let AI suggest useful areas to practise.
+                                </p>
+                            </div>
+
+                        </div>
+
+
+                        <!-- =====================================================
+                             TOPIC
+                        ====================================================== -->
+
+                        <div class="form-section">
+
+                            <div class="section-label">
+
+                                <span class="section-number">
+                                    4
+                                </span>
+
+                                <div class="section-label-content">
+
+                                    <strong>
+                                        Topic
+                                    <span class="required">
+                                             *
+                                     </span>
+                                    </strong>
+
+                                     	<span class="section-description">
+
+                                        Choose a topic or type your own
+                                        </span>
+                                </div>
+
+                                <span class="required">
+                                    *
+                                </span>
+
+                            </div>
+
+
+                            <div class="topic-box">
+
+                                <!-- MAIN TOPIC INPUT -->
+
+                                <div class="topic-input-wrapper">
+
+                                    <i class="fa-solid fa-magnifying-glass topic-icon"></i>
+
+                                    <input
+                                        type="text"
+                                        id="textContent"
+                                        name="textContent"
+                                        placeholder="Search or type a topic..."
+                                        autocomplete="off"
+                                        required
+                                    >
+
+                                </div>
+
+
+
+    <!-- DYNAMIC CURRICULUM TOPICS -->
+    <div class="topic-suggestions-area">
+
+        <div class="topic-suggestions-heading">
+            <div class="topic-heading-icon">
+                <i class="fa-solid fa-sparkles"></i>
+            </div>
+
+            <div class="topic-heading-text">
+                <span class="topic-suggestions-title">
+                    Choose a topic
+                </span>
+
+                <span class="topic-suggestions-subtitle">
+                    Pick one to create a worksheet instantly.
+                </span>
+            </div>
+
+            <span class="topic-heading-decoration" aria-hidden="true">✦</span>
+        </div>
+
+        <div class="suggested-topics-label">
+            Suggested topics
+        </div>
+
+        <div
+            id="topic-suggestions"
+            class="topic-suggestions"
+            aria-label="Suggested curriculum topics"
+        >
+            <!-- JavaScript inserts topic buttons here -->
+        </div>
+
+    </div>
+
+
+
+                                <!-- =================================================
+                                     AI SUGGESTED SUBTOPICS
+                                ================================================== -->
+
+                                <div
+                                    id="ai-suggestions"
+                                    class="ai-suggestions"
+                                    style="display:none;"
+                                >
+
+                                    <div class="ai-suggestions-heading">
+
+                                        <div class="section-label-content">
+
+
+                                            <span class="ai-suggestions-title">
+                                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                                AI suggested subtopics
+                                            </span>
+
+                                            <span class="ai-suggestions-hint">
+                                                Choose one or more
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- AI LOADING -->
+
+
+    <!-- AI LOADING -->
+
+    <div
+        id="suggestion-loading"
+        class="suggestion-loading"
+        style="display:none;"
+        role="status"
+        aria-live="polite"
+    >
+        <div class="loading-sparkle">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+
+        <div class="loading-message">
+            <span class="loading-title">
+                Creating personalised practice ideas
+            </span>
+
+            <span class="loading-description">
+                Finding useful subtopics for your child's learning...
+            </span>
+        </div>
+
+        <div class="loading-progress-track">
+            <div class="loading-progress-bar"></div>
+        </div>
+
+        <span class="loading-footer">
+            <i class="fa-solid fa-lightbulb"></i>
+            Preparing suggestions just for this topic
+        </span>
+    </div>
+
+
+
+                                    <!-- AI SUBTOPIC BUBBLES -->
+
+                                    <div
+                                        id="suggestion-bubbles"
+                                        class="suggestion-bubbles"
+                                    >
+                                    </div>
+
+                                </div>
+
+
+                                <!-- =================================================
+                                     SELECTED SUBTOPICS
+                                ================================================== -->
+
+                                <div
+                                    id="selected-subtopics-wrapper"
+                                    class="selected-subtopics-wrapper"
+                                    style="display:none;">
+
+                                    <div class="selected-subtopics-heading">
+
+                                        <span>
+                                            <i class="fa-solid fa-check"></i>
+                                            Selected subtopics
+                                        </span>
+
+                                        <small>
+                                            Optional
+                                        </small>
+
+                                    </div>
+
+
+                                    <div
+                                        id="selected-subtopics"
+                                        class="selected-subtopics"
+                                    >
+                                    </div>
+
+                                </div>
+
+    <!-- =================================================
+         ADD YOUR OWN SUBTOPIC
+    ================================================== -->
+                            <div class="section-label">
+
+                                <span class="section-number">
+                                    5
+                                </span>
+
+                                <div class="section-label-content">
+
+                                    <strong>
+                                        Sub- Topic
+                                    <span class="required">
+                                             *
+                                     </span>
+                                    </strong>
+                                </div>
+                            </div>
+
+
+    <div class="custom-subtopic-section">
+
+        <label for="custom-subtopic-input" class="custom-subtopic-label">
+            <i class="fa-solid fa-pen-to-square"></i>
+            Add your own subtopic
+            <span class="optional-label">Optional</span>
+        </label>
+
+        <p class="custom-subtopic-hint">
+            Have something specific in mind? Type it here.
+        </p>
+
+        <div class="custom-subtopic-input-row">
+
+            <input
+                type="text"
+                id="custom-subtopic-input"
+                placeholder="e.g. Comparing fractions with different denominators"
+                maxlength="200"
+                autocomplete="off">
+
+        </div>
+
+        <p
+            id="custom-subtopic-error"
+            class="custom-subtopic-error"
+            role="alert"
+            style="display:none;"
+        ></p>
+
+    </div>
+                                <!-- =================================================
+                                     PRACTICE FOCUS
+                                ================================================== -->
+ <div class="section-label-content">
+
+                            <div class="section-label">
+
+                                <span class="section-number">
+                                    6
+                                </span>
+
+                                <div class="section-label-content">
+
+                                    <strong>
+                                        Practice focus
+                                                                       </strong>
+
+                                     	<span class="section-description">
+
+                                        Choose how you want your child to practise    </span>
+                                </div>
+
+                                <span class="required">
+                                    *
+                                </span>
+
+                            </div>
+
+                                <div
+                                    id="practice-focus-section"
+                                    class="practice-focus-section"
+                                    style="display:none;"
+                                >
+
+                                    <div class="practice-focus-heading">
+
+                                        <div>
+
+                                            <span class="practice-focus-title">
+                                                🎯 Practice focus
+                                            </span>
+
+                                            <span class="practice-focus-optional">
+                                                · Optional
+                                            </span>
+
+                                        </div>
+
+                                        <span class="practice-focus-hint">
+                                            Choose how you want your child to practise
+                                        </span>
+
+                                    </div>
+
+
+                                    <div
+                                        id="practice-focus-options"
+                                        class="practice-focus-options"
+                                    >
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =====================================================
+                             STEP 2 ACTIONS
+                        ====================================================== -->
+
+
+
+                    </section>
+
+    <!-- =========================================================
+         STEP 3 — SETTINGS
+    ========================================================= -->
+
+
+
+                    <div class="worksheet-step" data-step="3">
+
+    <div class="step-heading">
+
+        <div class="step-icon">
+            <i class="fa-solid fa-sliders"></i>
+        </div>
+
+        <div>
+            <span class="step-eyebrow">
+                STEP 3
+            </span>
+
+            <h2>
+                Customise your worksheet
+            </h2>
+
+            <p>
+                Choose how you want your child to practise.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!--                    <div class="step-header">-->
+    <!--                        <div class="step-badge"> Step 3</div>-->
+    <!--                        <div>-->
+    <!--                            <h3>Settings</h3>-->
+    <!--                            <p>Choose how you want the worksheet to feel.</p>-->
+    <!--                        </div>-->
+    <!--                    </div>-->
+
+
+                        <!-- 5. PRACTICE MODE -->
+                        <div class="form-section">
+
+                            <div class="section-label">
+                                <span class="section-number">7</span>
+                                How should the worksheet feel?
+                            </div>
+
+                            <div class="practice-grid">
+
+                                <label class="practice-card practice-green">
+                                    <input type="radio"
+                                           name="practiceMode"
+                                           value="Practice Topic"
+                                           checked>
+
+                                    <div class="practice-icon">🟢</div>
+
+                                    <div class="practice-title">
+                                        Practice Topic
+                                    </div>
+
+                                    <div class="practice-description">
+                                        Build understanding step by step.
+                                    </div>
+                                </label>
+
+
+                                <label class="practice-card practice-purple">
+                                    <input type="radio"
+                                           name="practiceMode"
+                                           value="School Test">
+
+                                    <div class="practice-icon">🟣</div>
+
+                                    <div class="practice-title">
+                                        School Test
+                                    </div>
+
+                                    <div class="practice-description">
+                                        Questions similar to a school assessment.
+                                    </div>
+                                </label>
+
+
+                                <label class="practice-card practice-orange">
+                                    <input type="radio"
+                                           name="practiceMode"
+                                           value="Challenge Me">
+
+                                    <div class="practice-icon">🟠</div>
+
+                                    <div class="practice-title">
+                                        Challenge Me
+                                    </div>
+
+                                    <div class="practice-description">
+                                        Stretch thinking with harder questions.
+                                    </div>
+                                </label>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- 6. WORKSHEET SETTINGS -->
+                        <div class="form-section">
+
+                            <div class="section-label">
+                                <span class="section-number">8</span>
+                                Worksheet settings
+                            </div>
+
+
+                            <div class="settings-tabs">
+
+                                <button type="button"
+                                        class="settings-tab active"
+                                        id="ai-settings-tab"
+                                        onclick="toggleSettingsMode('ai')">
+
+                                    <span class="settings-tab-icon">✨</span>
+
+                                    <span>
+                                        <strong>Let AI decide</strong>
+                                        <small>
+                                            AI chooses suitable settings automatically
+                                        </small>
+                                    </span>
+
+                                </button>
+
+
+                                <button type="button"
+                                        class="settings-tab"
+                                        id="custom-settings-tab"
+                                        onclick="toggleSettingsMode('custom')">
+
+                                    <span class="settings-tab-icon">⚙️</span>
+
+                                    <span>
+                                        <strong>Customize myself</strong>
+                                        <small>
+                                            Choose your own worksheet settings
+                                        </small>
+                                    </span>
+
+                                </button>
+
+                            </div>
+
+
+                            <div id="ai-settings-info"
+                                 class="ai-settings-info">
+
+                                <span class="ai-info-icon">✨</span>
+
+                                <div>
+                                    <strong>AI will handle the details</strong>
+
+                                    <p>
+                                        Based on the student's level and topic,
+                                        AI will choose suitable question types,
+                                        difficulty, number of questions and format.
+                                    </p>
+                                </div>
+
+                            </div>
+
+
+                            <div id="advanced-settings"
+                                 class="advanced-settings">
+
+                                <div class="custom-field">
+
+                                    <label class="custom-label">
+                                        Question Types
+                                    </label>
+
+                                    <div class="question-type-grid">
+
+                                        <label class="question-type">
+                                            <input type="checkbox"
+                                                   name="question_types"
+                                                   value="MCQ">
+                                            <span>MCQ</span>
+                                        </label>
+
+                                        <label class="question-type">
+                                            <input type="checkbox"
+                                                   name="question_types"
+                                                   value="Short Answer">
+                                            <span>Short Answer</span>
+                                        </label>
+
+                                        <label class="question-type">
+                                            <input type="checkbox"
+                                                   name="question_types"
+                                                   value="Fill in the Blank">
+                                            <span>Fill in the Blank</span>
+                                        </label>
+
+                                        <label class="question-type">
+                                            <input type="checkbox"
+                                                   name="question_types"
+                                                   value="Puzzle">
+                                            <span>Puzzle</span>
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="custom-two-column">
+
+                                    <div class="custom-field">
+
+                                        <label class="custom-label">
+                                            Number of Questions
+                                        </label>
+
+                                        <input type="number"
+                                               name="num_questions"
+                                               class="custom-input"
+                                               min="1"
+                                               max="25"
+                                               value="10">
+
+                                    </div>
+
+
+                                    <div class="custom-field">
+
+                                        <label class="custom-label">
+                                            Difficulty
+                                        </label>
+
+                                        <select name="difficulty"
+                                                class="custom-select">
+
+                                            <option value="ai">
+                                                Let AI decide
+                                            </option>
+
+                                            <option value="easy">
+                                                Easy
+                                            </option>
+
+                                            <option value="medium">
+                                                Medium
+                                            </option>
+
+                                            <option value="hard">
+                                                Hard
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+
+<!--                                <div class="custom-two-column">-->
+
+<!--&lt;!&ndash;                                    <div class="custom-field">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                        <label class="custom-label">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            Format&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </label>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                        <select name="format"&ndash;&gt;-->
+<!--&lt;!&ndash;                                                class="custom-select">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                            <option value="worksheet">&ndash;&gt;-->
+<!--&lt;!&ndash;                                                Worksheet&ndash;&gt;-->
+<!--&lt;!&ndash;                                            </option>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                            <option value="test">&ndash;&gt;-->
+<!--&lt;!&ndash;                                                Test&ndash;&gt;-->
+<!--&lt;!&ndash;                                            </option>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                            <option value="homework">&ndash;&gt;-->
+<!--&lt;!&ndash;                                                Homework&ndash;&gt;-->
+<!--&lt;!&ndash;                                            </option>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                            <option value="quiz">&ndash;&gt;-->
+<!--&lt;!&ndash;                                                Quiz&ndash;&gt;-->
+<!--&lt;!&ndash;                                            </option>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                        </select>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                    </div>&ndash;&gt;-->
+
+
+<!--&lt;!&ndash;                                    <div class="custom-field">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                        <label class="custom-label">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            Suggested Duration&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </label>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                        <input type="text"&ndash;&gt;-->
+<!--&lt;!&ndash;                                               name="duration"&ndash;&gt;-->
+<!--&lt;!&ndash;                                               class="custom-input"&ndash;&gt;-->
+<!--&lt;!&ndash;                                               placeholder="e.g. 30 minutes">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                    </div>&ndash;&gt;-->
+
+<!--                                </div>-->
+
+
+<!--                                <div class="custom-field">-->
+
+<!--                                    <label class="custom-label">-->
+<!--                                        Total Marks-->
+<!--                                    </label>-->
+
+<!--                                    <input type="number"-->
+<!--                                           name="total_marks"-->
+<!--                                           class="custom-input"-->
+<!--                                           min="1"-->
+<!--                                           placeholder="e.g. 20">-->
+
+<!--                                </div>-->
+
+
+                                <div class="custom-field">
+
+                                    <label class="custom-label">
+                                        Reference Material
+                                    </label>
+
+                                    <div class="upload-box">
+
+                                        <input type="file"
+                                               name="reference_material"
+                                               accept=".pdf,.doc,.docx,.txt">
+
+                                        <div>
+                                            📎
+                                            <strong>
+                                                Upload reference material
+                                            </strong>
+                                        </div>
+
+                                        <small>
+                                            PDF, DOC, DOCX or TXT
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="custom-field">
+
+                                    <label class="custom-label">
+                                        Additional Instructions
+                                    </label>
+
+                                    <textarea name="additional_instructions"
+                                              class="custom-textarea"
+                                              rows="3"
+                                              placeholder="Anything else you'd like AI to consider?"></textarea>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- GENERATE -->
+                        <div class="generate-area">
+
+                            <div class="answer-note">
+
+                                <i class="fa-solid fa-circle-check"></i>
+
+                                Answer key will be provided on the last page.
+
+                            </div>
+
+
+                            <button type="submit"
+                                    class="generate-button">
+
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+                                Generate Worksheet
+
+                            </button>
+
+                        </div>
+
+                    </div>
+        </div>
+
+            </div>
+       <div class="carousel-navigation">
+
+            <button type="button"
+                    id="carouselPrev"
+                    class="carousel-btn">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back
+            </button>
+
+            <button type="button"
+                    id="carouselNext"
+                    class="carousel-btn">
+                Next
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+<!-- WORKSHEET GENERATION LOADING OVERLAY -->
+<div id="worksheetLoadingOverlay"
+     class="worksheet-loading-overlay"
+     role="status"
+     aria-live="polite"
+     aria-hidden="true">
+
+    <div class="loading-magic-card">
+
+        <div class="loading-magic-visual">
+            <div class="magic-orbit orbit-one"></div>
+            <div class="magic-orbit orbit-two"></div>
+
+            <span class="magic-sparkle sparkle-one">✦</span>
+            <span class="magic-sparkle sparkle-two">✧</span>
+            <span class="magic-sparkle sparkle-three">✦</span>
+            <span class="magic-sparkle sparkle-four">✧</span>
+
+            <div class="magic-book">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+        </div>
+
+        <span class="loading-eyebrow">MAPBUDDY AI</span>
+
+        <h2>Creating your worksheet</h2>
+
+        <p class="loading-subtitle">
+            A little learning magic is happening!
+        </p>
+
+        <div class="loading-message-box">
+            <span class="loading-message-dot"></span>
+            <span id="worksheetLoadingMessage">
+                Understanding your topic...
+            </span>
+        </div>
+
+        <div class="loading-progress-track">
+            <div class="loading-progress-bar"></div>
+        </div>
+
+        <p class="loading-footer">
+            <i class="fa-solid fa-lightbulb"></i>
+            Preparing personalised practice for your child
+        </p>
+
+    </div>
+</div>
+
+    </form>
+
+    <!-- Existing worksheet JavaScript -->
+    <script src="{{ url_for('static', filename='js/worksheet_input.js') }}"></script>
+    </main>
+
+<footer class="output-footer">
+    <div class="footer-brand">
+        <span class="footer-brand-icon">M</span>
+        <span class="footer-brand-name">MapBuddyAI</span>
+    </div>
+
+    <div class="footer-tagline">
+        Personalised learning, made easier.
+    </div>
+
+    <div class="footer-copyright">
+        © 2026 MapBuddyAI
+        <span class="footer-dot">✦</span>
+        Made for curious minds
+    </div>
+</footer>
+
+
+    </body>
+
+</html>

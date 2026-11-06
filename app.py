@@ -9,11 +9,9 @@ from PyPDF2 import PdfReader  # or usec pdfplumber
 import json
 from pathlib import Path
 import pytesseract
-from fpdf import FPDF
 import re, base64, os
-from io import BytesIO
-from PIL import Image
 from collections import Counter
+from fpdf import FPDF
 import xml.etree.ElementTree as ET
 import uuid
 from flask_sqlalchemy import SQLAlchemy
@@ -26,7 +24,9 @@ import traceback
 #   (New Google GenAI SDK syntax)
 from google import genai
 from google.genai import types
-
+import io
+import re
+import xml.etree.ElementTree as ET
 from flask_login import current_user, login_required , login_user ,UserMixin ,LoginManager
 import platform
 # from flask_migrate import Migrate
@@ -43,6 +43,17 @@ from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+import re
+import base64
+import io
+import cairosvg
 nltk.download('punkt', quiet=True)
 from nltk.tokenize import sent_tokenize
 load_dotenv()    # Load variables from .env
@@ -2736,6 +2747,65 @@ question-design approaches.
 
 
 ============================================================
+[VISUAL AND SVG GENERATION]
+============================================================
+
+You must independently decide whether each question requires
+a visual representation.
+
+Do NOT generate an SVG for every question.
+
+VISUAL DECISION RULES:
+
+1. Generate a visual only when it genuinely helps the student
+   understand, interpret or solve the question.
+
+2. Consider visuals for:
+   - Time: clocks, timelines and duration models.
+   - Fractions: fraction bars, circles and visual models.
+   - Geometry: shapes, angles and diagrams.
+   - Measurement: rulers, scales and measurement diagrams.
+   - Number concepts: number lines and visual representations.
+   - Science: simple labelled diagrams and processes.
+
+3. Use visuals only when appropriate for the selected curriculum,
+   grade and subject.
+
+4. If a question can be understood and solved clearly without
+   a visual, do not generate one.
+
+5. Do not generate decorative illustrations or unnecessary
+   visual elements.
+
+6. If Practice Focus includes "Visual / Timeline models",
+   consider suitable visuals, but do not force an SVG into
+   every question.
+
+SVG OUTPUT RULES:
+
+When a visual is genuinely needed:
+
+- Return a self-contained SVG string.
+- Use valid SVG markup.
+- Include the SVG namespace.
+- Include a suitable viewBox.
+- Use clear labels and grade-appropriate text.
+- Use simple SVG elements such as line, rect, circle,
+  ellipse, polygon, path and text.
+- Use readable colours and appropriate spacing.
+- Make the visual understandable without external resources.
+- Do not use JavaScript, scripts, event handlers,
+  foreignObject, external images or external URLs.
+- Do not include Markdown code fences inside the SVG string.
+
+When no visual is needed, return:
+
+"visual": null
+
+The visual must support the question, not reveal its answer
+unless the question specifically requires that information.
+
+============================================================
 [CURRICULUM KNOWLEDGE BASE]
 ============================================================
 
@@ -2908,23 +2978,27 @@ Use exactly this structure:
     "header": "{exam_type} Title and Clear Student Instructions",
 
     "questions": [
-        {{
-            "id": "Q1",
-            "text": "The precise question text",
-            "type": "MCQ/FIB/Short Answer",
-            "options": [
-                "Option A",
-                "Option B",
-                "Option C",
-                "Option D"
-            ],
-            "distractor_analysis": {{
-                "Option A": "Explain the student misconception.",
-                "Option B": "Explain the student misconception.",
-                "Option C": "Explain the student misconception.",
-                "Option D": "Explain the student misconception."
-            }}
-        }}
+     
+{{
+    "id": "Q1",
+    "text": "The precise question text",
+    "type": "Short Answer",
+    "options": [],
+    "distractor_analysis": {{}},
+    "visual": {{
+        "type": "svg",
+        "description": "A short description of the visual",
+        "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 180\" width=\"600\" height=\"180\"><line x1=\"50\" y1=\"90\" x2=\"550\" y2=\"90\" stroke=\"#7047EB\" stroke-width=\"3\"/><circle cx=\"100\" cy=\"90\" r=\"7\" fill=\"#7047EB\"/><circle cx=\"500\" cy=\"90\" r=\"7\" fill=\"#7047EB\"/><text x=\"100\" y=\"65\" text-anchor=\"middle\" font-size=\"18\">9:00 am</text><text x=\"500\" y=\"65\" text-anchor=\"middle\" font-size=\"18\">11:30 am</text></svg>"
+    }}
+}}
+{{
+    "id": "Q2",
+    "text": "Calculate 25 + 16.",
+    "type": "Short Answer",
+    "options": [],
+    "distractor_analysis": {{}},
+    "visual": null
+}}
     ],
 
     "answer_key": [
@@ -3080,12 +3154,35 @@ The final response MUST be valid JSON.
         # CLEAN MARKDOWN CODE FENCES
         # ============================================================
 
+        # worksheet_text_clean = re.sub(
+        #     r"^```json\s*|\s*```$",
+        #     "",
+        #     worksheet_text.strip(),
+        #     flags=re.MULTILINE
+        # )
+
+        # ============================================================
+        # CLEAN AND PARSE GEMINI JSON
+        # ============================================================
+
+        worksheet_text_clean = (response.text or "").strip()
+
+        # Remove optional Markdown fences only
         worksheet_text_clean = re.sub(
-            r"^```json\s*|\s*```$",
+            r"^```(?:json)?\s*|\s*```$",
             "",
-            worksheet_text.strip(),
+            worksheet_text_clean,
             flags=re.MULTILINE
-        )
+        ).strip()
+
+        try:
+            worksheet_json = json.loads(worksheet_text_clean)
+
+        except (json.JSONDecodeError, TypeError) as first_error:
+            print("Initial JSON parsing failed:", str(first_error))
+
+            # Keep your existing repair retry here.
+            # It should receive the original response text.
 
         # ============================================================
         # FIND JSON OBJECT
@@ -3163,33 +3260,24 @@ The final response MUST be valid JSON.
             )
 
             # Retry once by asking Gemini to repair the JSON.
+
             repair_prompt = f"""
             The following response is a worksheet that contains invalid JSON syntax.
 
             Repair the JSON syntax ONLY.
 
-            STRICT REQUIREMENTS:
-            1. Preserve all original questions, answers, values and wording.
-            2. Do not invent new questions or remove valid questions.
-            3. Do not summarize or shorten the worksheet.
-            4. Preserve the exact property names and their spelling.
-            5. The root MUST be a JSON object containing:
-               - "header": string
-               - "questions": array
-               - "answer_key": array
-            6. Every question must retain these fields:
-               - "id": string
-               - "text": string
-               - "type": string
-               - "options": array
-               - "distractor_analysis": object
-            7. Every answer_key entry must retain these fields:
-               - "id": string
-               - "answer": string
-               - "step_by_step_solution": string
-            8. Escape quotation marks and special characters correctly.
-            9. Return one complete, syntactically valid JSON object.
-            10. Do not include Markdown fences or explanations.
+            Every question must retain:
+            - "id": string
+            - "text": string
+            - "type": string
+            - "options": array
+            - "distractor_analysis": object
+            - "visual": object or null
+
+            If visual is an object, preserve:
+            - "type": "svg"
+            - "description": string
+            - "svg": string
 
             REQUIRED STRUCTURE:
             {{
@@ -3200,7 +3288,20 @@ The final response MUST be valid JSON.
                         "text": "Question text",
                         "type": "Short Answer",
                         "options": [],
-                        "distractor_analysis": {{}}
+                        "distractor_analysis": {{}},
+                        "visual": {{
+                            "type": "svg",
+                            "description": "Description of the diagram",
+                            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 180\">...</svg>"
+                        }}
+                    }},
+                    {{
+                        "id": "Q2",
+                        "text": "Calculate 25 + 16.",
+                        "type": "Short Answer",
+                        "options": [],
+                        "distractor_analysis": {{}},
+                        "visual": null
                     }}
                 ],
                 "answer_key": [
@@ -3208,6 +3309,11 @@ The final response MUST be valid JSON.
                         "id": "Q1",
                         "answer": "Correct answer",
                         "step_by_step_solution": "Solution steps"
+                    }},
+                    {{
+                        "id": "Q2",
+                        "answer": "41",
+                        "step_by_step_solution": "25 + 16 = 41."
                     }}
                 ]
             }}
@@ -3334,823 +3440,6 @@ The final response MUST be valid JSON.
             "success": False,
             "error": str(e)
         }), 500
-# def generate_worksheet_Gemini():
-#     try:
-#         # -------------------------
-#         # Get form fields
-#         # -------------------------
-#         curriculum = request.form.get('curriculum', '')
-#         grade = request.form.get('grade', '')
-#         subject = request.form.get('subject', '')
-#         custom_subject = request.form.get('customSubject', '')
-#         topic_text = request.form.get('textContent', '').strip()
-#         notes = request.form.get('notes', '')
-#         question_types = request.form.getlist('questionTypes')
-#         num_questions = request.form.get('numQuestions', 5)
-#         difficulty = request.form.get("difficulty") or "Medium"
-#         exam_type = request.form.get("examType") or "Worksheet"
-#         duration = request.form.get('duration', '')
-#         total_marks = request.form.get('totalMarks', '')
-#         practice_focus = request.form.getlist('practiceFocus')
-#         subtopics = request.form.getlist('subtopics')
-#
-#         # Determine  final subject
-#         final_subject = custom_subject if custom_subject else subject
-#
-#         # -------------------------
-#         # Handle uploaded file
-#         # -------------------------
-#         input_text = topic_text
-#         file = request.files.get("file")
-#
-#         if file:
-#             filename = file.filename.lower()
-#
-#             try:
-#                 if filename.endswith('.pdf'):
-#
-#                     with tempfile.NamedTemporaryFile(
-#                             delete=False,
-#                             suffix='.pdf'
-#                     ) as temp_pdf:
-#
-#                         temp_path = temp_pdf.name
-#                         file.save(temp_path)
-#
-#                     extracted = extract_and_clean_text_from_pdf(temp_path)
-#
-#                     if not extracted.strip():
-#                         extracted = ocr_from_scanned_pdf(temp_path)
-#                         extracted = clean_extracted_text(extracted)
-#
-#                     input_text += "\n" + extracted
-#
-#                     os.remove(temp_path)
-#
-#                 elif filename.endswith('.txt'):
-#
-#                     input_text += "\n" + file.read().decode(
-#                         'utf-8'
-#                     ).replace('\r\n', '\n')
-#
-#                 elif filename.endswith('.docx'):
-#
-#                     input_text += "\n" + extract_text_from_docx(file)
-#
-#                 elif filename.endswith(('.png', '.jpg', '.jpeg')):
-#
-#                     with tempfile.NamedTemporaryFile(
-#                             delete=False,
-#                             suffix='.png'
-#                     ) as temp_img:
-#
-#                         temp_path = temp_img.name
-#                         file.save(temp_path)
-#
-#                     input_text += "\n" + extract_from_image(temp_path)
-#
-#                     os.remove(temp_path)
-#
-#             except Exception as e:
-#                 return jsonify({
-#                     "success": False,
-#                     "error": f"File processing error: {str(e)}"
-#                 }), 400
-#
-#         # -------------------------
-#         # Ensure user entered something
-#         # -------------------------
-#         if not input_text.strip():
-#             return jsonify({
-#                 "success": False,
-#                 "error": "Please enter Topic/Notes or upload a file."
-#             }), 400
-#
-#         # -------------------------
-#         # Number of questions
-#         # -------------------------
-#         try:
-#             total_q = int(num_questions)
-#         except:
-#             total_q = 5
-#
-#         # -------------------------
-#         # Question types
-#         # -------------------------
-#         qtypes_str = ", ".join(question_types) if question_types else "Mix"
-#
-#         # -------------------------
-#         # Exam instructions
-#         # -------------------------
-#         exam_instructions = {
-#             "Worksheet": (
-#                 "Provide mixed practice questions. "
-#                 "Questions should reinforce learning and encourage self-study."
-#             ),
-#
-#             "Test": (
-#                 "Questions should be exam-style, formal, and cover a balanced "
-#                 "range of topics. No hints. Require complete answers. "
-#                 "Assign marks per question."
-#             ),
-#
-#             "Homework": (
-#                 "Provide practice questions students can solve at home. "
-#                 "Include a mix of easy and medium difficulty."
-#             ),
-#
-#             "Quiz": (
-#                 "Keep it short and focused on quick recall/application. "
-#                 "Mostly objective questions (MCQ, FIB, short answers)."
-#             )
-#         }
-#
-#         # -------------------------
-#         # Difficulty rules
-#         # -------------------------
-#         difficulty_rules = {
-#             "Easy": (
-#                 "Overall Baseline: EASY. Focus primarily on factual recall, "
-#                 "foundational definitions, and straightforward procedures "
-#                 "using simple grade-appropriate vocabulary."
-#             ),
-#
-#             "Medium": (
-#                 "Overall Baseline: MEDIUM. Focus on standard application, "
-#                 "simple multi-step problems, conceptual understanding and "
-#                 "clear explanations."
-#             ),
-#
-#             "Hard": (
-#                 "Overall Baseline: HARD. Focus on complex scenarios, "
-#                 "non-routine application, reasoning, critical evaluation "
-#                 "and multi-step problems."
-#             )
-#         }
-#
-#         rules_to_send = difficulty_rules.get(
-#             difficulty,
-#             difficulty_rules["Medium"]
-#         )
-#
-#         # ============================================================
-#         # LOAD CURRICULUM KNOWLEDGE
-#         # ============================================================
-#
-#         curriculum_data = load_p3_maths_curriculum()
-#
-#         if not curriculum_data:
-#             return jsonify({
-#                 "success": False,
-#                 "error": "P3 Mathematics curriculum JSON could not be loaded."
-#             }), 500
-#
-#         # ============================================================
-#         # FIND THE RELEVANT TOPIC FROM THE JSON
-#         # ============================================================
-#
-#         topics = curriculum_data.get("topics", {})
-#
-#         search_text = f"{topic_text} {subtopics}".lower()
-#
-#         matched_topic_key = None
-#         matched_topic_data = None
-#
-#         for topic_key, topic_data in topics.items():
-#
-#             display_name = topic_data.get(
-#                 "display_name",
-#                 ""
-#             ).lower()
-#
-#             topic_key_lower = topic_key.lower()
-#
-#             if (
-#                 topic_key_lower in search_text
-#                 or display_name in search_text
-#             ):
-#                 matched_topic_key = topic_key
-#                 matched_topic_data = topic_data
-#                 break
-#
-#         # ------------------------------------------------------------
-#         # If no exact topic match, send the complete curriculum JSON
-#         # for now so we don't accidentally ignore curriculum knowledge.
-#         # ------------------------------------------------------------
-#
-#         if matched_topic_data:
-#
-#             curriculum_knowledge = json.dumps(
-#                 {
-#                     matched_topic_key: matched_topic_data
-#                 },
-#                 indent=2,
-#                 ensure_ascii=False
-#             )
-#
-#             print(
-#                 f"Matched curriculum topic: {matched_topic_key}"
-#             )
-#
-#         else:
-#
-#             curriculum_knowledge = json.dumps(
-#                 curriculum_data,
-#                 indent=2,
-#                 ensure_ascii=False
-#             )
-#
-#             print(
-#                 "No specific topic matched. "
-#                 "Sending complete P3 Maths curriculum JSON."
-#             )
-#
-#         # ============================================================
-#         # BUILD LLM PROMPT
-#         # ============================================================
-#
-#         prompt = f"""
-# You are an expert AI Curriculum Designer and Professional Teacher's Assistant.
-#
-# Your task is to generate a high-quality {exam_type} for the student.
-#
-# The most important requirement is that the generated questions must
-# respect the supplied curriculum knowledge base.
-#
-# ============================================================
-# [CORE TARGET DATA]
-# ============================================================
-#
-# Curriculum:
-# {curriculum}
-#
-# Grade:
-# {grade}
-#
-# Subject:
-# {final_subject}
-#
-# Primary Reference Material / User Topic:
-# {input_text}
-#
-# Target Subtopics:
-# {subtopics if subtopics else "Assess the relevant topic from the supplied material."}
-#
-# Additional Teacher Requests:
-# {notes if notes else "None"}
-#
-# Allowed Question Types:
-# {qtypes_str}
-#
-# Total Number of Questions:
-# {total_q}
-#
-# Target Difficulty:
-# {difficulty}
-#
-# Duration:
-# {duration if duration else "Not specified"}
-#
-# Total Marks:
-# {total_marks if total_marks else "Not specified"}
-#
-#
-# ============================================================
-# [CURRICULUM KNOWLEDGE BASE]
-# ============================================================
-#
-# The following information comes from the application's
-# curriculum knowledge base.
-#
-# This knowledge base defines the intended curriculum scope,
-# rules, heuristics, vocabulary and solution approach.
-#
-# CURRICULUM KNOWLEDGE:
-#
-# {curriculum_knowledge}
-#
-#
-# ============================================================
-# [HOW TO USE THE CURRICULUM KNOWLEDGE]
-# ============================================================
-#
-# You MUST use the supplied curriculum knowledge when designing
-# the questions.
-#
-# 1. CURRICULUM SCOPE
-#
-# Do not introduce concepts that are outside the supplied
-# curriculum knowledge for this grade and topic.
-#
-# 2. CURRICULUM RULES
-#
-# Treat explicit rules in the curriculum knowledge as HARD
-# generation constraints.
-#
-# For example, if the curriculum states that certain numbers,
-# operations, denominators, units or representations must be
-# used or avoided, follow those restrictions.
-#
-# Do NOT override an explicit curriculum rule merely because
-# a more advanced question would be possible.
-#
-# 3. HEURISTICS
-#
-# Use the supplied heuristics as question-design patterns.
-#
-# The heuristics describe appropriate ways of testing the
-# student's understanding.
-#
-# Do not copy an example or mechanically repeat the same pattern.
-# Create new questions using the underlying idea.
-#
-# 4. VOCABULARY
-#
-# Prefer the vocabulary supplied by the curriculum knowledge
-# when it is appropriate.
-#
-# Use language suitable for the selected grade.
-#
-# 5. SOLUTION METHOD
-#
-# Use the supplied solution_steps as guidance for the answer key.
-#
-# The step-by-step solution must demonstrate the appropriate
-# method for this grade and topic.
-#
-# 6. PROGRESSION
-#
-# Create a sensible progression from simpler understanding
-# towards application and reasoning.
-#
-# Do NOT impose a universal percentage such as 30% easy,
-# 40% medium and 30% hard.
-#
-# The curriculum knowledge and requested difficulty should
-# determine the appropriate progression.
-#
-# 7. ORIGINALITY
-#
-# Generate completely new questions.
-#
-# Do not reproduce questions from the curriculum knowledge
-# verbatim.
-#
-# Do not invent past-paper questions or claim that a generated
-# question is an official examination question.
-#
-#
-# ============================================================
-# [DIFFICULTY]
-# ============================================================
-#
-# {rules_to_send}
-#
-#
-# ============================================================
-# [EXAM FORMAT]
-# ============================================================
-#
-# {exam_instructions.get(
-#     exam_type,
-#     "Use a standard educational worksheet format."
-# )}
-#
-#
-# ============================================================
-# [QUESTION DESIGN]
-# ============================================================
-#
-# Design the questions so that they:
-#
-# - Match the selected grade.
-# - Match the selected curriculum.
-# - Match the selected topic.
-# - Follow the curriculum rules.
-# - Use the curriculum heuristics.
-# - Use appropriate grade-level vocabulary.
-# - Test genuine understanding rather than random variation.
-# - Progress naturally in complexity.
-# - Avoid concepts that have not been introduced within the
-#   supplied curriculum scope.
-# - Have clear and unambiguous wording.
-#
-#
-# ============================================================
-# [MULTIPLE CHOICE RULES]
-# ============================================================
-#
-# For MCQ questions:
-#
-# - Provide exactly four options.
-# - There must be exactly one correct answer.
-# - Every distractor must represent a realistic student mistake.
-# - Do not create obviously silly or impossible distractors.
-# - Distractors should relate to the actual calculation,
-#   reasoning or misconception involved.
-#
-#
-# ============================================================
-# [QUALITY CONTROL]
-# ============================================================
-#
-# Before producing the final JSON, internally verify:
-#
-# - Every question is within curriculum scope.
-# - Every question matches the selected topic.
-# - Every calculation is correct.
-# - Every MCQ has exactly one correct answer.
-# - Every answer matches the question.
-# - Every step-by-step solution reaches the stated answer.
-# - No contradictory information exists.
-# - No unsupported advanced concepts have been introduced.
-# - The number of questions exactly equals {total_q}.
-#
-#
-# ============================================================
-# [OUTPUT FORMAT]
-# ============================================================
-#
-# Return ONLY one valid JSON object.
-#
-# Do not include markdown.
-# Do not include ```json.
-# Do not include explanations outside the JSON.
-#
-# Use exactly this structure:
-#
-# {{
-#     "header": "{exam_type} Title and Clear Student Instructions",
-#
-#     "questions": [
-#         {{
-#             "id": "Q1",
-#             "text": "The precise question text",
-#             "type": "MCQ/FIB/Short Answer",
-#             "options": [
-#                 "Option A",
-#                 "Option B",
-#                 "Option C",
-#                 "Option D"
-#             ],
-#             "distractor_analysis": {{
-#                 "Option A": "Explain the student misconception.",
-#                 "Option B": "Explain the student misconception.",
-#                 "Option C": "Explain the student misconception.",
-#                 "Option D": "Explain the student misconception."
-#             }}
-#         }}
-#     ],
-#
-#     "answer_key": [
-#         {{
-#             "id": "Q1",
-#             "answer": "The exact correct answer",
-#             "step_by_step_solution": "Clear step-by-step solution appropriate for the grade."
-#         }}
-#     ]
-# }}
-#
-# Important:
-#
-# If the question type is not MCQ, the options array may be empty
-# and distractor_analysis may be an empty object.
-#
-# The final response MUST be valid JSON.
-# """
-#         print("\n================ GEMINI RAW RESPONSE input ================")
-#         print(prompt)
-#         print("======================================================\n")
-#
-#
-#         # ============================================================
-#         # EXECUTE GEMINI
-#         # ============================================================
-#
-#         config = types.GenerateContentConfig(
-#             temperature=0.7,
-#             max_output_tokens=8192,
-#             response_mime_type="application/json"
-#         )
-#
-#         gemini_client = genai.Client(
-#             vertexai=True,
-#             project='my-project-8112-283009',
-#             location='us-central1'
-#         )
-#
-#         response = gemini_client.models.generate_content(
-#             model="gemini-2.5-flash",
-#             contents=prompt,
-#             config=config
-#         )
-#
-#         # ============================================================
-#         # EXTRACT GEMINI RESPONSE
-#         # ============================================================
-#
-#         worksheet_text = response.text
-#
-#         # Remove markdown code fences if Gemini adds them
-#         worksheet_text_clean = re.sub(
-#             r"^```json\s*|\s*```$",
-#             "",
-#             worksheet_text.strip(),
-#             flags=re.MULTILINE
-#         )
-#
-#         # Find JSON object
-#         match = re.search(
-#             r"\{.*\}",
-#             worksheet_text_clean,
-#             flags=re.DOTALL
-#         )
-#
-#         if match:
-#             worksheet_text_clean = match.group(0)
-#         else:
-#             return jsonify({
-#                 "success": False,
-#                 "error": "No valid JSON structure found in the LLM response.",
-#                 "raw_text": worksheet_text
-#             }), 500
-#
-#         # Remove comments
-#         worksheet_text_clean = re.sub(
-#             r"//.*?$",
-#             "",
-#             worksheet_text_clean,
-#             flags=re.MULTILINE
-#         )
-#
-#         worksheet_text_clean = re.sub(
-#             r"/\*.*?\*/",
-#             "",
-#             worksheet_text_clean,
-#             flags=re.DOTALL
-#         )
-#
-#         # Remove trailing commas
-#         worksheet_text_clean = re.sub(
-#             r",\s*([\]}])",
-#             r"\1",
-#             worksheet_text_clean
-#         )
-#
-#         # ============================================================
-#         # LOAD / VALIDATE JSON
-#         # ============================================================
-#
-#         try:
-#             worksheet_json = json.loads(
-#                 worksheet_text_clean
-#             )
-#
-#         except json.JSONDecodeError as e:
-#
-#             print(
-#                 f"JSON structural corruption error: {str(e)}"
-#             )
-#
-#             return jsonify({
-#                 "success": False,
-#                 "error": f"JSON structural corruption error: {str(e)}",
-#                 "raw_text": worksheet_text_clean
-#             }), 500
-#
-#         print(
-#             f"Successfully generated worksheet: "
-#             f"{worksheet_json.get('header', '')}"
-#         )
-#
-#         return jsonify({
-#             "success": True,
-#             "worksheet": worksheet_json
-#         })
-#
-#     except Exception as e:
-#
-#         print(traceback.format_exc())
-#
-#         return jsonify({
-#             "success": False,
-#             "error": str(e)
-#         }), 500
-
-
-
-
-# def generate_worksheet_Gemini():
-#     try:
-#         # -------------------------
-#         # Get form fields
-#         # -------------------------
-#         curriculum = request.form.get('curriculum', '')
-#         grade = request.form.get('grade', '')
-#         subject = request.form.get('subject', '')
-#         custom_subject = request.form.get('customSubject', '')
-#         topic_text = request.form.get('textContent', '').strip()
-#         subtopics = request.form.get('subtopics', '')
-#         notes = request.form.get('notes', '')
-#         question_types = request.form.getlist('questionTypes')
-#         num_questions = request.form.get('numQuestions', 5)
-#         difficulty = request.form.get("difficulty") or "Medium"
-#         exam_type = request.form.get("examType") or "Worksheet"
-#         duration = request.form.get('duration', '')
-#         total_marks = request.form.get('totalMarks', '')
-#
-#         # Determine final subject
-#         final_subject = custom_subject if custom_subject else subject
-#
-#         # -------------------------
-#         # Handle uploaded file
-#         # -------------------------
-#         input_text = topic_text  # start with textarea content
-#         file = request.files.get("file")
-#
-#         if file:
-#             filename = file.filename.lower()
-#             try:
-#                 if filename.endswith('.pdf'):
-#                     with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
-#                         temp_path = temp_pdf.name
-#                         file.save(temp_path)
-#                     extracted = extract_and_clean_text_from_pdf(temp_path)
-#                     if not extracted.strip():
-#                         extracted = ocr_from_scanned_pdf(temp_path)
-#                         extracted = clean_extracted_text(extracted)
-#                     input_text += "\n" + extracted
-#                     os.remove(temp_path)
-#                 elif filename.endswith('.txt'):
-#                     input_text += "\n" + file.read().decode('utf-8').replace('\r\n', '\n')
-#                 elif filename.endswith('.docx'):
-#                     input_text += "\n" + extract_text_from_docx(file)
-#                 elif filename.endswith(('.png', '.jpg', '.jpeg')):
-#                     with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_img:
-#                         temp_path = temp_img.name
-#                         file.save(temp_path)
-#                     input_text += "\n" + extract_from_image(temp_path)
-#                     os.remove(temp_path)
-#             except Exception as e:
-#                 return jsonify({"success": False, "error": f"File processing error: {str(e)}"}), 400
-#
-#         # Ensure user entered something
-#         if not input_text.strip():
-#             return jsonify({"success": False, "error": "Please enter Topic/Notes or upload a file."}), 400
-#
-#         # -------------------------
-#         # Advanced Pedagogical Scaffolding Logic
-#         # -------------------------
-#         try:
-#             total_q = int(num_questions)
-#         except:
-#             total_q = 5
-#
-#         scaffolding_rule = f"""
-#         Scaffolding & Progression Rules:
-#         - Out of the {total_q} questions requested, organize them sequentially to build concept mastery:
-#           - The first 30% of questions must be foundational (direct recall, basic vocabulary, core concepts).
-#           - The middle 40% must require light conceptual application (combining variables, identifying operations, basic inferences).
-#           - The final 30% must offer an analytical challenge (multi-step problems, real-world context application, or identifying a mistake in a broken solution).
-#         - This sequential step-up is strictly mandatory to ensure educational depth.
-#         """
-#
-#         qtypes_str = ", ".join(question_types) if question_types else "Mix"
-#
-#         exam_instructions = {
-#             "Worksheet": "Provide mixed practice questions. Questions should reinforce learning and encourage self-study.",
-#             "Test": "Questions should be exam-style, formal, and cover a balanced range of topics. No hints. Require complete answers. Assign marks per question.",
-#             "Homework": "Provide practice questions students can solve at home. Include a mix of easy and medium difficulty.",
-#             "Quiz": "Keep it short and focused on quick recall/application. Mostly objective questions (MCQ, FIB, short answers)."
-#         }
-#
-#         difficulty_rules = {
-#             "Easy": "Overall Baseline: EASY. Focus primarily on factual recall, foundational definitions, and straightforward procedures using simple grade-appropriate vocabulary.",
-#             "Medium": "Overall Baseline: MEDIUM. Focus on standard application, reading comprehension inferences, simple multi-step combining of raw facts, and clear conceptual explanations.",
-#             "Hard": "Overall Baseline: HARD. Focus on complex scenarios, non-routine application of concepts to novel situations, critical evaluations, and multi-layered reasoning frameworks."
-#         }
-#
-#         rules_to_send = difficulty_rules[difficulty]
-#
-#         # -------------------------
-#         # Build LLM Prompt
-#         # -------------------------
-#         prompt = f"""
-# You are an expert AI Curriculum Designer and Professional Teacher's Assistant. Generate a highly structured, accurate {exam_type}.
-#
-# [CORE TARGET DATA]
-# Curriculum Alignment Framework: {curriculum}
-# Grade Level: {grade}
-# Subject Domain: {final_subject}
-# Primary Reference Material/Source Text: {input_text}
-# Target Subtopics to Assess: {subtopics if subtopics else 'Assess full coverage of material'}
-# Additional Teacher Requests: {notes if notes else 'None'}
-# Allowed Question Archetypes: {qtypes_str}
-# Total Quantity of Questions Required: {total_q}
-# Target Baseline Difficulty: {difficulty}
-# Allocated Exam Duration: {duration if duration else 'Not specified'}
-# Maximum Exam Marks: {total_marks if total_marks else 'Not specified'}
-#
-# [PEDAGOGICAL INSTRUCTIONS]
-# {scaffolding_rule}
-#
-# Difficulty Level Boundaries:
-# {rules_to_send}
-#
-# Exam Format Specifications:
-# {exam_instructions.get(exam_type, "Use standard exam format.")}
-#
-# [STRICT ALIGNMENT & QUALITY RULES]
-# - Curriculum Matching: Adhere stringently to the specific learning objectives of {curriculum} for Grade {grade}. Use the precise terminology, grading structures, notations, and formatting standards associated with {curriculum}.
-# - Distractor Design Rules (For Multiple-Choice Questions): Every single incorrect option (distractor) must be realistic and deliberately mapped to a common student misconception (e.g., in math, an option showing an addition slip, inverted fraction, or skipped unit conversion step). Never output arbitrary or obviously false options.
-# - Logical Flawlessness: Ensure there is precisely one unarguably correct answer per question. Double check all calculations internally before writing options.
-#
-# [OUTPUT FORMAT INSTRUCTIONS]
-# Format your response as a single, perfectly structured JSON object using this layout. Do not include markdown wraps, code fences (such as ```json), or text outside the brackets.
-#
-# {{
-#     "header": "{exam_type} Title and Clear Student Instructions",
-#     "questions": [
-#         {{
-#             "id": "Q1",
-#             "text": "The precise question text",
-#             "type": "MCQ/FIB/Short Answer",
-#             "options": ["Option A", "Option B", "Option C", "Option D"],
-#             "distractor_analysis": {{
-#                 "Option A": "Explain why this mistake happens (e.g. Student multiplied instead of adding)",
-#                 "Option B": "Explain the misconception for this specific option",
-#                 "Option C": "Explain the procedural slip for this option"
-#             }}
-#         }}
-#     ],
-#     "answer_key": [
-#         {{
-#             "id": "Q1",
-#             "answer": "The exact correct answer text",
-#             "step_by_step_solution": "A crystal-clear, pedagogically thorough breakdown outlining how to calculate or reach the exact answer."
-#         }}
-#     ]
-# }}
-#
-# Ensure the JSON is completely closed, valid, and fully structural.
-# """
-#
-#         # -------------------------
-#         # Execute Request to Gemini Client
-#         # -------------------------
-#         config = types.GenerateContentConfig(
-#             temperature=0.7,
-#             max_output_tokens=8192,  # CRITICAL: Raised to maximum to fit thinking tokens
-#             response_mime_type="application/json"  # CRITICAL: Forces Gemini to output pure JSON natively
-#         )
-#         gemini_client = genai.Client(
-#             vertexai=True,
-#             project='my-project-8112-283009',
-#             location='us-central1'
-#         )
-#
-#         response = gemini_client.models.generate_content(
-#             model="gemini-2.5-flash",  # The required modern reasoning model
-#             contents=prompt,
-#             config=config
-#         )
-#
-#         # Extract text directly using the new SDK standard
-#         worksheet_text = response.text
-#
-#         # Sanitize JSON from any leftover margins
-#         worksheet_text_clean = re.sub(r"^```json\s*|\s*```$", "", worksheet_text.strip(), flags=re.MULTILINE)
-#         match = re.search(r"\{.*\}", worksheet_text_clean, flags=re.DOTALL)
-#         if match:
-#             worksheet_text_clean = match.group(0)
-#         else:
-#             return jsonify({"success": False, "error": "No valid JSON structural maps found in the LLM response.",
-#                             "raw_text": worksheet_text}), 500
-#
-#         # Remove trailing commas or stray annotation tags
-#         worksheet_text_clean = re.sub(r"//.*?$", "", worksheet_text_clean, flags=re.MULTILINE)
-#         worksheet_text_clean = re.sub(r"/\*.*?\*/", "", worksheet_text_clean, flags=re.DOTALL)
-#         worksheet_text_clean = re.sub(r",\s*([\]}])", r"\1", worksheet_text_clean)
-#
-#         # Load and validate the finalized dataset
-#         try:
-#             worksheet_json = json.loads(worksheet_text_clean)
-#         except json.JSONDecodeError as e:
-#             # Added this indented block to handle parsing failures cleanly:
-#             print(f"JSON structural corruption error: {str(e)}")
-#             return jsonify({
-#                 "success": False,
-#                 "error": f"JSON structural corruption error: {str(e)}",
-#                 "raw_text": worksheet_text_clean
-#             }), 500
-#
-#         print(f"Successfully generated worksheet: {worksheet_json.get('header', '')}")
-#         return jsonify({"success": True, "worksheet": worksheet_json})
-#
-#     except Exception as e:
-#         print(traceback.format_exc())
-#         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @app.route('/generate_worksheet_GPT', methods=['POST'])
 def generate_worksheet_GPT():
@@ -4576,14 +3865,18 @@ def generate_worksheet_3_step():
 
 @app.route("/export-worksheet", methods=["POST"])
 def export_worksheet():
-    payload = request.get_json()  # the whole JSON from JS
-    worksheet = payload.get("data")  # this is your worksheetData
+    payload = request.get_json()
+    worksheet = payload.get("data")
     action = payload.get("action", "saveDoc")
 
     try:
-        if action == 'saveDoc':
-            # DOCX
+        if not worksheet:
+            return jsonify({"error": "No worksheet data provided"}), 400
+
+        # ---------------- DOCX Export ----------------
+        if action == "saveDoc":
             doc = create_docx_from_json(worksheet)
+
             doc_buffer = BytesIO()
             doc.save(doc_buffer)
             doc_buffer.seek(0)
@@ -4595,25 +3888,65 @@ def export_worksheet():
                 download_name="worksheet.docx"
             )
 
-        else:
-            # PDF
-            pdf = create_pdf_from_json(worksheet)
-            pdf_buffer = BytesIO()
-            # FPDF example: output to bytes
-            pdf_buffer.write(pdf.output(dest='S').encode('latin-1'))
-            pdf_buffer.seek(0)
+        # ---------------- PDF Export / Print ----------------
+        pdf = create_pdf_from_json(worksheet)
 
-            return send_file(
-                pdf_buffer,
-                mimetype="application/pdf",
-                as_attachment=True,
-                download_name="worksheet.pdf"
-            )
+        pdf_buffer = BytesIO()
+        pdf_buffer.write(pdf.output(dest="S").encode("latin-1"))
+        pdf_buffer.seek(0)
+
+        is_print = action == "print"
+
+        return send_file(
+            pdf_buffer,
+            mimetype="application/pdf",
+            as_attachment=not is_print,
+            download_name="worksheet.pdf"
+        )
 
     except Exception as e:
         print("Error in export_worksheet:")
-        traceback.print_exc()  # prints full traceback
+        traceback.print_exc()
         return jsonify({"error": f"Failed to save: {str(e)}"}), 500
+# def export_worksheet():
+#     payload = request.get_json()  # the whole JSON from JS
+#     worksheet = payload.get("data")  # this is your worksheetData
+#     action = payload.get("action", "saveDoc")
+#
+#     try:
+#         if action == 'saveDoc':
+#             # DOCX
+#             doc = create_docx_from_json(worksheet)
+#             doc_buffer = BytesIO()
+#             doc.save(doc_buffer)
+#             doc_buffer.seek(0)
+#
+#             return send_file(
+#                 doc_buffer,
+#                 mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+#                 as_attachment=True,
+#                 download_name="worksheet.docx"
+#             )
+#
+#         else:
+#             # PDF
+#             pdf = create_pdf_from_json(worksheet)
+#             pdf_buffer = BytesIO()
+#             # FPDF example: output to bytes
+#             pdf_buffer.write(pdf.output(dest='S').encode('latin-1'))
+#             pdf_buffer.seek(0)
+#
+#             return send_file(
+#                 pdf_buffer,
+#                 mimetype="application/pdf",
+#                 as_attachment=True,
+#                 download_name="worksheet.pdf"
+#             )
+#
+#     except Exception as e:
+#         print("Error in export_worksheet:")
+#         traceback.print_exc()  # prints full traceback
+#         return jsonify({"error": f"Failed to save: {str(e)}"}), 500
 
 
 class PDFWithHeader(FPDF):
@@ -5144,25 +4477,6 @@ def add_writing_lines(pdf, count):
 
     # Blank writing space only — no horizontal lines
     pdf.ln(count * 25)
-# def add_writing_lines(pdf, count):
-#     if count <= 0:
-#         return
-# 
-#     pdf.set_draw_color(225, 225, 235)
-#     pdf.set_line_width(0.25)
-# 
-#     for _ in range(count):
-#         pdf.ln(7)
-#         y = pdf.get_y()
-#         pdf.line(
-#             pdf.l_margin,
-#             y,
-#             pdf.w - pdf.r_margin,
-#             y
-#         )
-# 
-#     pdf.ln(4)
-
 # ============================================================
 # 7. QUESTION OPTIONS
 # ============================================================
@@ -5177,121 +4491,265 @@ def add_question_options(pdf, question):
     if not options:
         return
 
-    pdf.set_font(PDF_FONT, "", BODY_FONT_SIZE)
-    pdf.set_text_color(*DARK_TEXT)
+    # ----------------------------------
+    # Legacy matching question format
+    # ----------------------------------
 
-    # Legacy matching question format.
     if isinstance(options, dict):
 
         column_a = options.get("ColumnA", [])
-        column_b\
-            = options.get("ColumnB", [])
+        column_b = options.get("ColumnB", [])
 
         if not column_a and not column_b:
             return
 
-        ensure_page_space(pdf, 12)
+        ensure_page_space(pdf, 16)
 
-        column_width = pdf.epw / 2
+        # Avoid pdf.epw dependency.
+        column_width = (pdf.w - 2 * PAGE_MARGIN) / 2
 
+        pdf.set_fill_color(244, 237, 255)
+        pdf.set_text_color(*PURPLE)
         pdf.set_font(PDF_FONT, "B", 10)
-        pdf.set_text_color(*BLUE)
 
         pdf.cell(
             column_width,
-            7,
+            8,
             "Column A",
-            ln=0
+            border=0,
+            fill=True,
+            align="C"
         )
 
         pdf.cell(
             column_width,
-            7,
+            8,
             "Column B",
-            ln=1
+            border=0,
+            ln=1,
+            fill=True,
+            align="C"
         )
 
         pdf.set_font(PDF_FONT, "", 10)
         pdf.set_text_color(*DARK_TEXT)
 
-        rows = max(
-            len(column_a),
-            len(column_b)
-        )
+        rows = max(len(column_a), len(column_b))
 
         for index in range(rows):
 
-            a = (
-                str(column_a[index])
-                if index < len(column_a)
-                else ""
-            )
+            a = str(column_a[index]) if index < len(column_a) else ""
+            b = str(column_b[index]) if index < len(column_b) else ""
 
-            b = (
-                str(column_b[index])
-                if index < len(column_b)
-                else ""
-            )
-
-            # Allow each row to move to a new page.
-            ensure_page_space(pdf, 8)
+            ensure_page_space(pdf, 9)
 
             pdf.cell(
                 column_width,
-                7,
+                8,
                 a,
-                ln=0
+                border=0
             )
 
             pdf.cell(
                 column_width,
-                7,
+                8,
                 b,
+                border=0,
                 ln=1
             )
 
-        pdf.ln(3)
-
+        pdf.ln(4)
         return
 
-    # Standard list of MCQ or FIB options.
+    # ----------------------------------
+    # Standard MCQ / FIB options
+    # ----------------------------------
+
     if isinstance(options, list):
 
         for index, option in enumerate(options):
 
-            option_text = clean_question_html(option)
+            option_text = clean_question_html(str(option))
 
             if not option_text:
                 continue
 
-            ensure_page_space(pdf, 8)
+            ensure_page_space(pdf, 9)
 
-            label = chr(65 + index) if index < 26 else str(index + 1)
+            label = (
+                chr(65 + index)
+                if index < 26
+                else str(index + 1)
+            )
 
             pdf.set_x(PAGE_MARGIN + 8)
 
+            # Purple option label.
+            pdf.set_font(PDF_FONT, "B", 10)
+            pdf.set_text_color(*PURPLE)
+
+            pdf.cell(
+                9,
+                7,
+                f"{label}.",
+                border=0
+            )
+
+            # Option text.
             pdf.set_font(PDF_FONT, "", 10)
+            pdf.set_text_color(*DARK_TEXT)
 
             pdf.multi_cell(
                 0,
-                6,
-                f"{label}.  {option_text}"
+                7,
+                option_text
             )
 
-        pdf.ln(2)
+        pdf.ln(3)
 
-    # Support a single string option if encountered.
+    # ----------------------------------
+    # Single string option
+    # ----------------------------------
+
     elif isinstance(options, str):
 
         pdf.set_x(PAGE_MARGIN + 8)
+        pdf.set_font(PDF_FONT, "", 10)
+        pdf.set_text_color(*DARK_TEXT)
 
         pdf.multi_cell(
             0,
-            6,
+            7,
             clean_question_html(options)
         )
 
-        pdf.ln(2)
+        pdf.ln(3)
+
+# def add_question_options(pdf, question):
+#     """
+#     Render MCQ, FIB and legacy Match question options.
+#     """
+#
+#     options = question.get("options")
+#
+#     if not options:
+#         return
+#
+#     pdf.set_font(PDF_FONT, "", BODY_FONT_SIZE)
+#     pdf.set_text_color(*DARK_TEXT)
+#
+#     # Legacy matching question format.
+#     if isinstance(options, dict):
+#
+#         column_a = options.get("ColumnA", [])
+#         column_b\
+#             = options.get("ColumnB", [])
+#
+#         if not column_a and not column_b:
+#             return
+#
+#         ensure_page_space(pdf, 12)
+#
+#         column_width = pdf.epw / 2
+#
+#         pdf.set_font(PDF_FONT, "B", 10)
+#         pdf.set_text_color(*BLUE)
+#
+#         pdf.cell(
+#             column_width,
+#             7,
+#             "Column A",
+#             ln=0
+#         )
+#
+#         pdf.cell(
+#             column_width,
+#             7,
+#             "Column B",
+#             ln=1
+#         )
+#
+#         pdf.set_font(PDF_FONT, "", 10)
+#         pdf.set_text_color(*DARK_TEXT)
+#
+#         rows = max(
+#             len(column_a),
+#             len(column_b)
+#         )
+#
+#         for index in range(rows):
+#
+#             a = (
+#                 str(column_a[index])
+#                 if index < len(column_a)
+#                 else ""
+#             )
+#
+#             b = (
+#                 str(column_b[index])
+#                 if index < len(column_b)
+#                 else ""
+#             )
+#
+#             # Allow each row to move to a new page.
+#             ensure_page_space(pdf, 8)
+#
+#             pdf.cell(
+#                 column_width,
+#                 7,
+#                 a,
+#                 ln=0
+#             )
+#
+#             pdf.cell(
+#                 column_width,
+#                 7,
+#                 b,
+#                 ln=1
+#             )
+#
+#         pdf.ln(3)
+#
+#         return
+#
+#     # Standard list of MCQ or FIB options.
+#     if isinstance(options, list):
+#
+#         for index, option in enumerate(options):
+#
+#             option_text = clean_question_html(option)
+#
+#             if not option_text:
+#                 continue
+#
+#             ensure_page_space(pdf, 8)
+#
+#             label = chr(65 + index) if index < 26 else str(index + 1)
+#
+#             pdf.set_x(PAGE_MARGIN + 8)
+#
+#             pdf.set_font(PDF_FONT, "", 10)
+#
+#             pdf.multi_cell(
+#                 0,
+#                 6,
+#                 f"{label}.  {option_text}"
+#             )
+#
+#         pdf.ln(2)
+#
+#     # Support a single string option if encountered.
+#     elif isinstance(options, str):
+#
+#         pdf.set_x(PAGE_MARGIN + 8)
+#
+#         pdf.multi_cell(
+#             0,
+#             6,
+#             clean_question_html(options)
+#         )
+#
+#         pdf.ln(2)
 
 
 # ============================================================
@@ -5301,12 +4759,13 @@ def add_question_options(pdf, question):
 def add_question_images(pdf, question, image_data_urls):
     """
     Decode and render embedded Base64 images.
-
     SVG files are converted to PNG when CairoSVG is available.
     Temporary files are removed automatically.
     """
 
     for image_data_url in image_data_urls:
+
+        temp_path = None
 
         try:
             header, encoded = image_data_url.split(",", 1)
@@ -5332,7 +4791,6 @@ def add_question_images(pdf, question, image_data_urls):
             # Verify and normalise the image.
             with Image.open(BytesIO(image_bytes)) as source:
                 source.load()
-
                 image = source.convert("RGBA")
 
                 buffer = BytesIO()
@@ -5356,21 +4814,19 @@ def add_question_images(pdf, question, image_data_urls):
             try:
                 ensure_page_space(pdf, 40)
 
+                # Insert the image using its temporary file path.
                 pdf.image(
                     temp_path,
-                    w=min(75, pdf.epw),
-                    keep_aspect_ratio=True
+                    w=100
                 )
 
                 pdf.ln(4)
 
             finally:
-                if os.path.exists(temp_path):
+                if temp_path and os.path.exists(temp_path):
                     os.remove(temp_path)
 
         except Exception as exc:
-            # Keep a single invalid image from stopping the
-            # generation of the entire worksheet.
             print(
                 f"Could not render image for question "
                 f"{question.get('id', '?')}: {exc}"
@@ -5381,22 +4837,161 @@ def add_question_images(pdf, question, image_data_urls):
 # 9. RENDER A SINGLE QUESTION
 # ============================================================
 
+# def add_question(pdf, question):
+#     """
+#     Render a complete question, options, images and writing lines.
+#     """
+#
+#     question_id = question.get("id", "")
+#     question_text_html = str(
+#         question.get("text") or ""
+#     )
+#
+#     # Extract images before stripping HTML.
+#     image_data_urls = extract_question_images(
+#         question_text_html
+#     )
+#
+#     # Remove image tags from the printable question text.
+#     text_without_images = re.sub(
+#         r"<img\b[^>]*>",
+#         "",
+#         question_text_html,
+#         flags=re.IGNORECASE | re.DOTALL
+#     )
+#
+#     question_text = clean_question_html(
+#         text_without_images
+#     )
+#
+#     # Avoid splitting the question heading and its text.
+#     ensure_page_space(pdf, 18)
+#
+#     # Question number.
+#     pdf.set_font(
+#         PDF_FONT,
+#         "B",
+#         QUESTION_FONT_SIZE
+#     )
+#
+#     pdf.set_text_color(*PURPLE)
+#
+#     question_label = f"Q{question_id}."
+#
+#     pdf.cell(
+#         13,
+#         7,
+#         question_label,
+#         ln=0
+#     )
+#
+#     # Question text.
+#     pdf.set_font(
+#         PDF_FONT,
+#         "",
+#         QUESTION_FONT_SIZE
+#     )
+#
+#     pdf.set_text_color(*DARK_TEXT)
+#     pdf.multi_cell(
+#         0,
+#         LINE_HEIGHT,
+#         question_text
+#     )
+#
+#     pdf.ln(2)
+#
+#     # Gemini-generated SVG visual.
+#     add_question_svg(
+#         pdf,
+#         question
+#     )
+#
+#     # Options.
+#     add_question_options(
+#         pdf,
+#         question
+#     )
+#
+#     # pdf.multi_cell(
+#     #     0,
+#     #     LINE_HEIGHT,
+#     #     question_text
+#     # )
+#     #
+#     # pdf.ln(2)
+#     #
+#     # # Options.
+#     # add_question_options(
+#     #     pdf,
+#     #     question
+#     # )
+#
+#     # Images.
+#     add_question_images(
+#         pdf,
+#         question,
+#         image_data_urls
+#     )
+#
+#     # Dedicated writing space.
+#     writing_lines = get_writing_line_count(
+#         question
+#     )
+#
+#     if writing_lines > 0:
+#
+#         pdf.set_font(
+#             PDF_FONT,
+#             "B",
+#             9
+#         )
+#
+#         pdf.set_text_color(*MUTED_TEXT)
+#
+#         pdf.cell(
+#             0,
+#             6,
+#             "Working / Answer:",
+#             ln=1
+#         )
+#
+#         pdf.set_text_color(*DARK_TEXT)
+#
+#         add_writing_lines(
+#             pdf,
+#             writing_lines
+#         )
+#
+#     else:
+#         pdf.ln(4)
+#
+#     # Subtle divider between questions.
+#     pdf.set_draw_color(225, 225, 235)
+#
+#     y = pdf.get_y()
+#
+#     pdf.line(
+#         PAGE_MARGIN,
+#         y,
+#         pdf.w - PAGE_MARGIN,
+#         y
+#     )
+#
+#     pdf.ln(6)
+
 def add_question(pdf, question):
     """
-    Render a complete question, options, images and writing lines.
+    Render a complete question with improved visual hierarchy,
+    SVG visuals, options, embedded images and writing space.
     """
 
     question_id = question.get("id", "")
-    question_text_html = str(
-        question.get("text") or ""
-    )
+    question_text_html = str(question.get("text") or "")
 
-    # Extract images before stripping HTML.
-    image_data_urls = extract_question_images(
-        question_text_html
-    )
+    # Extract embedded images before cleaning HTML.
+    image_data_urls = extract_question_images(question_text_html)
 
-    # Remove image tags from the printable question text.
     text_without_images = re.sub(
         r"<img\b[^>]*>",
         "",
@@ -5404,39 +4999,54 @@ def add_question(pdf, question):
         flags=re.IGNORECASE | re.DOTALL
     )
 
-    question_text = clean_question_html(
-        text_without_images
-    )
+    question_text = clean_question_html(text_without_images)
 
-    # Avoid splitting the question heading and its text.
-    ensure_page_space(pdf, 18)
+    # ----------------------------------
+    # Question heading
+    # ----------------------------------
 
-    # Question number.
-    pdf.set_font(
-        PDF_FONT,
-        "B",
-        QUESTION_FONT_SIZE
-    )
+    ensure_page_space(pdf, 22)
 
+    start_x = PAGE_MARGIN
+
+    # Purple question number highlight.
+    pdf.set_fill_color(244, 237, 255)
     pdf.set_text_color(*PURPLE)
+    pdf.set_font(PDF_FONT, "B", 10)
 
-    question_label = f"Q{question_id}."
+    pdf.set_x(start_x)
+
+    question_label = (
+        str(question_id)
+        if str(question_id).upper().startswith("Q")
+        else f"Q{question_id}"
+    )
 
     pdf.cell(
-        13,
-        7,
+        14,
+        8,
         question_label,
-        ln=0
+        border=0,
+        ln=0,
+        align="C",
+        fill=True
     )
+
+    # pdf.cell(
+    #     14,
+    #     8,
+    #     f"Q{question_id}",
+    #     border=0,
+    #     ln=0,
+    #     align="C",
+    #     fill=True
+    # )
 
     # Question text.
-    pdf.set_font(
-        PDF_FONT,
-        "",
-        QUESTION_FONT_SIZE
-    )
-
+    pdf.set_font(PDF_FONT, "", QUESTION_FONT_SIZE)
     pdf.set_text_color(*DARK_TEXT)
+
+    pdf.set_x(start_x + 18)
 
     pdf.multi_cell(
         0,
@@ -5444,40 +5054,47 @@ def add_question(pdf, question):
         question_text
     )
 
-    pdf.ln(2)
+    pdf.ln(3)
 
-    # Options.
-    add_question_options(
-        pdf,
-        question
-    )
+    # ----------------------------------
+    # Gemini-generated SVG
+    # ----------------------------------
 
-    # Images.
+    add_question_svg(pdf, question)
+
+    # ----------------------------------
+    # Embedded images
+    # ----------------------------------
+
     add_question_images(
         pdf,
         question,
         image_data_urls
     )
 
-    # Dedicated writing space.
-    writing_lines = get_writing_line_count(
-        question
-    )
+    # ----------------------------------
+    # Question options
+    # ----------------------------------
+
+    add_question_options(pdf, question)
+
+    # ----------------------------------
+    # Writing / answer space
+    # ----------------------------------
+
+    writing_lines = get_writing_line_count(question)
 
     if writing_lines > 0:
 
-        pdf.set_font(
-            PDF_FONT,
-            "B",
-            9
-        )
+        ensure_page_space(pdf, 12 + writing_lines * 25)
 
+        pdf.set_font(PDF_FONT, "B", 9)
         pdf.set_text_color(*MUTED_TEXT)
 
         pdf.cell(
             0,
-            6,
-            "Working / Answer:",
+            7,
+            "Working / Answer",
             ln=1
         )
 
@@ -5488,11 +5105,14 @@ def add_question(pdf, question):
             writing_lines
         )
 
-    else:
-        pdf.ln(4)
+    # ----------------------------------
+    # Space after question
+    # ----------------------------------
 
-    # Subtle divider between questions.
-    pdf.set_draw_color(225, 225, 235)
+    pdf.ln(4)
+
+    # Subtle divider.
+    pdf.set_draw_color(230, 224, 240)
 
     y = pdf.get_y()
 
@@ -5503,7 +5123,131 @@ def add_question(pdf, question):
         y
     )
 
-    pdf.ln(6)
+    pdf.ln(7)
+
+
+
+def add_question_svg(pdf, question):
+    """
+    Render Gemini-generated SVG visuals in the PDF.
+    Preserves aspect ratio, centres diagrams and
+    provides consistent spacing.
+    """
+
+    visual = question.get("visual")
+
+    if not isinstance(visual, dict):
+        return
+
+    if visual.get("type") != "svg":
+        return
+
+    svg_markup = visual.get("svg", "")
+
+    if not svg_markup:
+        return
+
+    svg_stream = create_svg_image_stream(svg_markup)
+
+    if not svg_stream:
+        return
+
+    temp_path = None
+
+    try:
+        from PIL import Image
+
+        # ----------------------------------
+        # Read PNG dimensions
+        # ----------------------------------
+
+        svg_stream.seek(0)
+
+        with Image.open(svg_stream) as image:
+            image_width, image_height = image.size
+
+        if image_width <= 0 or image_height <= 0:
+            return
+
+        # ----------------------------------
+        # Calculate display dimensions
+        # ----------------------------------
+
+        available_width = pdf.w - (2 * PAGE_MARGIN)
+
+        # Slightly narrower than full page width
+        # for a cleaner worksheet appearance.
+        max_width = min(available_width * 0.90, 165)
+
+        # Maximum diagram height.
+        max_height = 75
+
+        scale = min(
+            max_width / image_width,
+            max_height / image_height
+        )
+
+        display_width = image_width * scale
+        display_height = image_height * scale
+
+        # ----------------------------------
+        # Save temporary PNG
+        # ----------------------------------
+
+        svg_stream.seek(0)
+
+        with tempfile.NamedTemporaryFile(
+            suffix=".png",
+            delete=False
+        ) as temp_file:
+
+            temp_path = temp_file.name
+            temp_file.write(svg_stream.read())
+
+        # ----------------------------------
+        # Page-space management
+        # ----------------------------------
+
+        top_spacing = 4
+        bottom_spacing = 7
+
+        ensure_page_space(
+            pdf,
+            display_height + top_spacing + bottom_spacing
+        )
+
+        # ----------------------------------
+        # Centre diagram
+        # ----------------------------------
+
+        x = (pdf.w - display_width) / 2
+        y = pdf.get_y() + top_spacing
+
+        pdf.image(
+            temp_path,
+            x=x,
+            y=y,
+            w=display_width,
+            h=display_height
+        )
+
+        # Move cursor below diagram.
+        pdf.set_y(
+            y + display_height + bottom_spacing
+        )
+
+    except Exception as error:
+
+        print(
+            f"SVG rendering failed for question "
+            f"{question.get('id')}: {error}"
+        )
+
+    finally:
+
+        # Always remove temporary PNG.
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
 
 
 # ============================================================
@@ -5512,12 +5256,9 @@ def add_question(pdf, question):
 
 def add_answer_key(pdf, data):
     """
-    Render the answer key on a new page.
-
-    Supports:
-      - Standard text answers
-      - Matching question answers
-      - Step-by-step solutions
+    Render a professionally styled answer key.
+    Supports MCQ, standard answers, matching answers
+    and step-by-step solutions.
     """
 
     answers = data.get("answer_key", [])
@@ -5525,43 +5266,53 @@ def add_answer_key(pdf, data):
     if not answers:
         return
 
-    # Always start the answer key on a new page.
+    # Identify question types.
+    question_types = {
+        str(q.get("id", "")).upper():
+        str(q.get("type", "")).lower()
+        for q in data.get("questions", [])
+    }
+
+    # ----------------------------------
+    # Answer key page heading
+    # ----------------------------------
+
     pdf.add_page()
 
-    pdf.set_font(
-        PDF_FONT,
-        "B",
-        18
-    )
-
+    pdf.set_font(PDF_FONT, "B", 19)
     pdf.set_text_color(*PURPLE)
 
     pdf.cell(
         0,
-        10,
+        12,
         "Answer Key",
         ln=1
     )
 
-    pdf.set_font(
-        PDF_FONT,
-        "",
-        10
-    )
-
+    pdf.set_font(PDF_FONT, "", 10)
     pdf.set_text_color(*MUTED_TEXT)
 
     pdf.multi_cell(
         0,
         6,
-        "Answers and step-by-step solutions"
+        "Check your answers and understand how to solve each question."
     )
 
-    pdf.ln(5)
+    pdf.ln(6)
+
+    # ----------------------------------
+    # Individual answers
+    # ----------------------------------
 
     for answer_item in answers:
 
-        answer_id = answer_item.get("id", "")
+        answer_id = str(answer_item.get("id", ""))
+
+        answer_label = (
+            answer_id
+            if answer_id.upper().startswith("Q")
+            else f"Q{answer_id}"
+        )
 
         answer = answer_item.get("answer", "")
 
@@ -5572,25 +5323,40 @@ def add_answer_key(pdf, data):
             or ""
         )
 
-        # Ensure the answer heading has room.
-        ensure_page_space(pdf, 18)
-
-        pdf.set_font(
-            PDF_FONT,
-            "B",
-            11
+        question_type = question_types.get(
+            answer_id.upper(),
+            question_types.get(
+                answer_id.upper().removeprefix("Q"),
+                ""
+            )
         )
 
-        pdf.set_text_color(*BLUE)
+        # ----------------------------------
+        # Question badge
+        # ----------------------------------
+
+        ensure_page_space(pdf, 24)
+
+        pdf.set_fill_color(105, 75, 190)
+        pdf.set_text_color(255, 255, 255)
+        pdf.set_font(PDF_FONT, "B", 10)
 
         pdf.cell(
-            0,
-            7,
-            f"Q{answer_id}",
-            ln=1
+            16,
+            8,
+            answer_label,
+            border=0,
+            ln=1,
+            align="C",
+            fill=True
         )
 
-        # Matching answers.
+        pdf.ln(3)
+
+        # ----------------------------------
+        # Matching answers
+        # ----------------------------------
+
         if (
             isinstance(answer, dict)
             and "ColumnA" in answer
@@ -5600,36 +5366,32 @@ def add_answer_key(pdf, data):
             column_a = answer.get("ColumnA", [])
             column_b = answer.get("ColumnB", [])
 
-            column_width = pdf.epw / 2
+            column_width = (
+                pdf.w - 2 * PAGE_MARGIN
+            ) / 2
 
-            pdf.set_font(
-                PDF_FONT,
-                "B",
-                10
-            )
-
+            pdf.set_fill_color(244, 237, 255)
             pdf.set_text_color(*PURPLE)
+            pdf.set_font(PDF_FONT, "B", 10)
 
             pdf.cell(
                 column_width,
-                7,
+                8,
                 "Column A",
-                ln=0
+                fill=True,
+                align="C"
             )
 
             pdf.cell(
                 column_width,
-                7,
+                8,
                 "Column B",
-                ln=1
+                fill=True,
+                ln=1,
+                align="C"
             )
 
-            pdf.set_font(
-                PDF_FONT,
-                "",
-                10
-            )
-
+            pdf.set_font(PDF_FONT, "", 10)
             pdf.set_text_color(*DARK_TEXT)
 
             rows = max(
@@ -5651,71 +5413,87 @@ def add_answer_key(pdf, data):
                     else ""
                 )
 
-                ensure_page_space(pdf, 8)
+                ensure_page_space(pdf, 9)
 
                 pdf.cell(
                     column_width,
-                    7,
-                    a,
-                    ln=0
+                    8,
+                    a
                 )
 
                 pdf.cell(
                     column_width,
-                    7,
+                    8,
                     b,
                     ln=1
                 )
+
+        # ----------------------------------
+        # Standard answers
+        # ----------------------------------
 
         else:
 
             if isinstance(answer, (dict, list)):
                 answer_text = str(answer)
             else:
-                answer_text = clean_question_html(answer)
+                answer_text = clean_question_html(
+                    str(answer or "")
+                )
 
-            pdf.set_font(
-                PDF_FONT,
-                "B",
-                10
+            # Answer label.
+            label_text = (
+                "CORRECT OPTION"
+                if question_type in ("mcq", "multiple_choice")
+                else "FINAL ANSWER"
             )
 
-            pdf.set_text_color(*DARK_TEXT)
-
-            pdf.multi_cell(
-                0,
-                7,
-                f"Answer: {answer_text}"
-            )
-
-        # Step-by-step solution.
-        if solution:
-
-            ensure_page_space(pdf, 15)
-
-            pdf.ln(2)
-
-            pdf.set_font(
-                PDF_FONT,
-                "B",
-                9.5
-            )
-
+            pdf.set_font(PDF_FONT, "B", 8)
             pdf.set_text_color(*PURPLE)
 
             pdf.cell(
                 0,
                 6,
-                "Step-by-step solution",
+                label_text,
                 ln=1
             )
 
-            pdf.set_font(
-                PDF_FONT,
-                "",
-                10
+            # Highlighted final answer.
+            pdf.set_fill_color(245, 240, 255)
+            pdf.set_text_color(56, 33, 111)
+            pdf.set_font(PDF_FONT, "B", 12)
+
+            pdf.set_x(PAGE_MARGIN)
+
+            pdf.multi_cell(
+                0,
+                9,
+                answer_text,
+                border=0,
+                fill=True
             )
 
+        # ----------------------------------
+        # Step-by-step solution
+        # ----------------------------------
+
+        if solution:
+
+            pdf.ln(3)
+
+            ensure_page_space(pdf, 12)
+
+            pdf.set_font(PDF_FONT, "B", 10)
+            pdf.set_text_color(*PURPLE)
+
+            pdf.cell(
+                0,
+                7,
+                "How to solve it",
+                ln=1
+            )
+
+            pdf.set_font(PDF_FONT, "", 10)
             pdf.set_text_color(*DARK_TEXT)
 
             if isinstance(solution, list):
@@ -5725,31 +5503,49 @@ def add_answer_key(pdf, data):
                     start=1
                 ):
 
-                    ensure_page_space(pdf, 8)
+                    step_text = clean_question_html(
+                        str(step)
+                    )
 
-                    step_text = clean_question_html(step)
+                    if not step_text:
+                        continue
+
+                    ensure_page_space(pdf, 9)
+
+                    pdf.set_x(PAGE_MARGIN + 4)
 
                     pdf.multi_cell(
                         0,
                         6,
-                        f"{step_number}. {step_text}"
+                        f"{step_number}.  {step_text}"
                     )
+
+                    pdf.ln(1)
 
             else:
 
                 solution_text = clean_question_html(
-                    solution
+                    str(solution)
                 )
 
-                pdf.multi_cell(
-                    0,
-                    6,
-                    solution_text
-                )
+                if solution_text:
+
+                    ensure_page_space(pdf, 9)
+
+                    pdf.set_x(PAGE_MARGIN + 4)
+
+                    pdf.multi_cell(
+                        0,
+                        6,
+                        solution_text
+                    )
+
+        # ----------------------------------
+        # Divider between answers
+        # ----------------------------------
 
         pdf.ln(5)
 
-        # Subtle divider between answers.
         pdf.set_draw_color(225, 225, 235)
 
         y = pdf.get_y()
@@ -5761,7 +5557,260 @@ def add_answer_key(pdf, data):
             y
         )
 
-        pdf.ln(5)
+        pdf.ln(7)
+
+# def add_answer_key(pdf, data):
+#     """
+#     Render the answer key on a new page.
+#
+#     Supports:
+#       - Standard text answers
+#       - Matching question answers
+#       - Step-by-step solutions
+#     """
+#
+#     answers = data.get("answer_key", [])
+#
+#     if not answers:
+#         return
+#
+#     # Always start the answer key on a new page.
+#     pdf.add_page()
+#
+#     pdf.set_font(
+#         PDF_FONT,
+#         "B",
+#         18
+#     )
+#
+#     pdf.set_text_color(*PURPLE)
+#
+#     pdf.cell(
+#         0,
+#         10,
+#         "Answer Key",
+#         ln=1
+#     )
+#
+#     pdf.set_font(
+#         PDF_FONT,
+#         "",
+#         10
+#     )
+#
+#     pdf.set_text_color(*MUTED_TEXT)
+#
+#     pdf.multi_cell(
+#         0,
+#         6,
+#         "Answers and step-by-step solutions"
+#     )
+#
+#     pdf.ln(5)
+#
+#     for answer_item in answers:
+#
+#         answer_id = answer_item.get("id", "")
+#
+#         answer = answer_item.get("answer", "")
+#
+#         solution = (
+#             answer_item.get("step_by_step_solution")
+#             or answer_item.get("solution")
+#             or answer_item.get("explanation")
+#             or ""
+#         )
+#
+#         # Ensure the answer heading has room.
+#         ensure_page_space(pdf, 18)
+#
+#         pdf.set_font(
+#             PDF_FONT,
+#             "B",
+#             11
+#         )
+#
+#         pdf.set_text_color(*BLUE)
+#
+#         pdf.cell(
+#             0,
+#             7,
+#             f"Q{answer_id}",
+#             ln=1
+#         )
+#
+#         # Matching answers.
+#         if (
+#             isinstance(answer, dict)
+#             and "ColumnA" in answer
+#             and "ColumnB" in answer
+#         ):
+#
+#             column_a = answer.get("ColumnA", [])
+#             column_b = answer.get("ColumnB", [])
+#
+#             column_width = pdf.epw / 2
+#
+#             pdf.set_font(
+#                 PDF_FONT,
+#                 "B",
+#                 10
+#             )
+#
+#             pdf.set_text_color(*PURPLE)
+#
+#             pdf.cell(
+#                 column_width,
+#                 7,
+#                 "Column A",
+#                 ln=0
+#             )
+#
+#             pdf.cell(
+#                 column_width,
+#                 7,
+#                 "Column B",
+#                 ln=1
+#             )
+#
+#             pdf.set_font(
+#                 PDF_FONT,
+#                 "",
+#                 10
+#             )
+#
+#             pdf.set_text_color(*DARK_TEXT)
+#
+#             rows = max(
+#                 len(column_a),
+#                 len(column_b)
+#             )
+#
+#             for index in range(rows):
+#
+#                 a = (
+#                     str(column_a[index])
+#                     if index < len(column_a)
+#                     else ""
+#                 )
+#
+#                 b = (
+#                     str(column_b[index])
+#                     if index < len(column_b)
+#                     else ""
+#                 )
+#
+#                 ensure_page_space(pdf, 8)
+#
+#                 pdf.cell(
+#                     column_width,
+#                     7,
+#                     a,
+#                     ln=0
+#                 )
+#
+#                 pdf.cell(
+#                     column_width,
+#                     7,
+#                     b,
+#                     ln=1
+#                 )
+#
+#         else:
+#
+#             if isinstance(answer, (dict, list)):
+#                 answer_text = str(answer)
+#             else:
+#                 answer_text = clean_question_html(answer)
+#
+#             pdf.set_font(
+#                 PDF_FONT,
+#                 "B",
+#                 10
+#             )
+#
+#             pdf.set_text_color(*DARK_TEXT)
+#
+#             pdf.multi_cell(
+#                 0,
+#                 7,
+#                 f"Answer: {answer_text}"
+#             )
+#
+#         # Step-by-step solution.
+#         if solution:
+#
+#             ensure_page_space(pdf, 15)
+#
+#             pdf.ln(2)
+#
+#             pdf.set_font(
+#                 PDF_FONT,
+#                 "B",
+#                 9.5
+#             )
+#
+#             pdf.set_text_color(*PURPLE)
+#
+#             pdf.cell(
+#                 0,
+#                 6,
+#                 "Step-by-step solution",
+#                 ln=1
+#             )
+#
+#             pdf.set_font(
+#                 PDF_FONT,
+#                 "",
+#                 10
+#             )
+#
+#             pdf.set_text_color(*DARK_TEXT)
+#
+#             if isinstance(solution, list):
+#
+#                 for step_number, step in enumerate(
+#                     solution,
+#                     start=1
+#                 ):
+#
+#                     ensure_page_space(pdf, 8)
+#
+#                     step_text = clean_question_html(step)
+#
+#                     pdf.multi_cell(
+#                         0,
+#                         6,
+#                         f"{step_number}. {step_text}"
+#                     )
+#
+#             else:
+#
+#                 solution_text = clean_question_html(
+#                     solution
+#                 )
+#
+#                 pdf.multi_cell(
+#                     0,
+#                     6,
+#                     solution_text
+#                 )
+#
+#         pdf.ln(5)
+#
+#         # Subtle divider between answers.
+#         pdf.set_draw_color(225, 225, 235)
+#
+#         y = pdf.get_y()
+#
+#         pdf.line(
+#             PAGE_MARGIN,
+#             y,
+#             pdf.w - PAGE_MARGIN,
+#             y
+#         )
+#
+#         pdf.ln(5)
 
 
 # ============================================================
@@ -5893,65 +5942,449 @@ def add_page_number(footer_para):
     run._r.append(fldChar2)
     run._r.append(fldChar3)
 
+def create_svg_image_stream(svg_markup):
+    """
+    Validate an AI-generated SVG and convert it to a PNG stream
+    for embedding in a Word document.
+    """
+    import re
+    import xml.etree.ElementTree as ET
+
+    if not isinstance(svg_markup, str) or not svg_markup.strip():
+        return None
+
+    try:
+        root = ET.fromstring(svg_markup)
+
+        # The root element must be SVG.
+        if root.tag.split("}")[-1].lower() != "svg":
+            return None
+
+        for element in root.iter():
+            tag_name = element.tag.split("}")[-1].lower()
+
+            # Reject potentially active or externally embedded content.
+            if tag_name in {
+                "script", "foreignobject", "iframe",
+                "object", "embed", "image", "use"
+            }:
+                return None
+
+            for attr_name, attr_value in element.attrib.items():
+                attr_name = attr_name.split("}")[-1].lower()
+                value = attr_value.strip()
+
+                if attr_name.startswith("on"):
+                    return None
+
+                if attr_name in {"href", "src"} and value and not value.startswith("#"):
+                    return None
+
+                if re.search(r"url\(\s*(['\"]?)(?!#)", value, re.IGNORECASE):
+                    return None
+
+            # Reject CSS that could import or load external resources.
+            if tag_name == "style":
+                if re.search(
+                    r"@import|url\(\s*(['\"]?)(?!#)",
+                    element.text or "",
+                    re.IGNORECASE
+                ):
+                    return None
+
+        png_bytes = cairosvg.svg2png(
+            bytestring=svg_markup.encode("utf-8"),
+            output_width=1200
+        )
+
+        return io.BytesIO(png_bytes)
+
+    except Exception as error:
+        print("SVG conversion failed:", str(error))
+        return None
+
+# def create_docx_from_json(data):
+#     doc = Document()
+#     title = data.get("title") or data.get("header", "Worksheet")
+#
+#     # ---------------- Page Setup ----------------
+#     section = doc.sections[0]
+#     section.top_margin = Inches(0.8)
+#     section.bottom_margin = Inches(0.7)
+#     section.header_distance = Inches(0.35)
+#     section.footer_distance = Inches(0.35)
+#
+#     # ---------------- Header: MapBuddyAI Branding ----------------
+#     header = section.header
+#     header_para = header.paragraphs[0]
+#     header_para.clear()
+#     header_para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+#     header_para.paragraph_format.space_after = Pt(6)
+#
+#     brand_run = header_para.add_run("MapBuddyAI")
+#     brand_run.bold = True
+#     brand_run.font.name = "Arial"
+#     brand_run.font.size = Pt(10)
+#     brand_run.font.color.rgb = RGBColor(105, 75, 190)
+#
+#     # Subtle divider below header
+#     pPr = header_para._p.get_or_add_pPr()
+#     pBdr = OxmlElement("w:pBdr")
+#     bottom_border = OxmlElement("w:bottom")
+#     bottom_border.set(qn("w:val"), "single")
+#     bottom_border.set(qn("w:sz"), "6")
+#     bottom_border.set(qn("w:space"), "4")
+#     bottom_border.set(qn("w:color"), "DCD5F5")
+#     pBdr.append(bottom_border)
+#     pPr.append(pBdr)
+#
+#     # ---------------- Footer: Divider and Page Number ----------------
+#     footer = section.footer
+#     footer_para = footer.paragraphs[0]
+#     footer_para.clear()
+#     footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+#     footer_para.paragraph_format.space_before = Pt(4)
+#
+#     # Divider above footer
+#     pPr = footer_para._p.get_or_add_pPr()
+#     pBdr = OxmlElement("w:pBdr")
+#     top_border = OxmlElement("w:top")
+#     top_border.set(qn("w:val"), "single")
+#     top_border.set(qn("w:sz"), "6")
+#     top_border.set(qn("w:space"), "4")
+#     top_border.set(qn("w:color"), "DCD5F5")
+#     pBdr.append(top_border)
+#     pPr.append(pBdr)
+#
+#     footer_run = footer_para.add_run("MapBuddyAI  |  Page ")
+#     footer_run.font.name = "Arial"
+#     footer_run.font.size = Pt(8)
+#     footer_run.font.color.rgb = RGBColor(130, 130, 145)
+#
+#     # Dynamic Word page number field
+#     page_field = OxmlElement("w:fldSimple")
+#     page_field.set(qn("w:instr"), "PAGE")
+#     footer_para._p.append(page_field)
+#
+#     # ---------------- Student Information ----------------
+#     student_name = data.get("student_name", "__________")
+#     date = data.get("date", "__________")
+#     grade = data.get("grade", "")
+#     subject = data.get("subject", "")
+#
+#     # Name / Date row
+#     table1 = doc.add_table(rows=1, cols=2)
+#     table1.autofit = True
+#     table1.cell(0, 0).text = f"Name: {student_name}"
+#     table1.cell(0, 1).text = f"Date: {date}"
+#     remove_table_borders(table1)
+#
+#     # Grade / Subject row
+#     table2 = doc.add_table(rows=1, cols=2)
+#     table2.autofit = True
+#     table2.cell(0, 0).text = f"Grade: {grade}"
+#     table2.cell(0, 1).text = f"Subject: {subject}"
+#     remove_table_borders(table2)
+#
+#     # ---------------- Worksheet Title ----------------
+#     doc.add_paragraph("")
+#
+#     title_para = doc.add_paragraph(title)
+#     title_para.style = "Heading 1"
+#     title_para.paragraph_format.space_after = Pt(12)
+#
+#     # ---------------- Questions ----------------
+#     for q in data.get("questions", []):
+#         question_text = q.get("text", "")
+#
+#         img_matches = re.findall(
+#             r'<img.*?src="(data:image/[^"]+)".*?>',
+#             question_text
+#         )
+#
+#         text_only = re.sub(r'<img.*?>', '', question_text).strip()
+#
+#         para = doc.add_paragraph(f"{q.get('id', '')}. {text_only}")
+#         para.paragraph_format.space_after = Pt(12)
+#
+#         # ---------------- Gemini-generated SVG visual ----------------
+#         visual = q.get("visual")
+#
+#         if isinstance(visual, dict) and visual.get("type") == "svg":
+#             svg_stream = create_svg_image_stream(visual.get("svg", ""))
+#
+#             if svg_stream:
+#                 visual_para = doc.add_paragraph()
+#                 visual_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+#                 visual_para.paragraph_format.space_before = Pt(4)
+#                 visual_para.paragraph_format.space_after = Pt(12)
+#
+#                 visual_para.add_run().add_picture(
+#                     svg_stream,
+#                     width=Inches(5.5)
+#                 )
+#
+#         # Existing answer-writing space
+#         writing_space = get_writing_line_count(q)
+#         add_docx_writing_space(doc, writing_space)
+#
+#         # Match-type questions
+#         if q.get("type") == "Match" and q.get("options"):
+#             colA = q["options"].get("ColumnA", [])
+#             colB = q["options"].get("ColumnB", [])
+#             rows = max(len(colA), len(colB))
+#
+#             table = doc.add_table(rows=1, cols=2)
+#             table.autofit = True
+#             remove_table_borders(table)
+#
+#             table.cell(0, 0).text = "Column A"
+#             table.cell(0, 1).text = "Column B"
+#
+#             for i in range(rows):
+#                 row_cells = table.add_row().cells
+#                 row_cells[0].text = colA[i] if i < len(colA) else ""
+#                 row_cells[1].text = colB[i] if i < len(colB) else ""
+#
+#             doc.add_paragraph("")
+#
+#         # Other question options
+#         elif q.get("options"):
+#             for opt in q["options"]:
+#                 opt_para = doc.add_paragraph(f"  - {opt}")
+#                 opt_para.paragraph_format.space_after = Pt(6)
+#
+#         # Embedded images
+#         for img_data_url in img_matches:
+#             image_header, encoded = img_data_url.split(",", 1)
+#             img_bytes = base64.b64decode(encoded)
+#
+#             if image_header.startswith("data:image/svg+xml"):
+#                 png_bytes = cairosvg.svg2png(bytestring=img_bytes)
+#                 image_stream = io.BytesIO(png_bytes)
+#             else:
+#                 image_stream = io.BytesIO(img_bytes)
+#
+#             doc.add_picture(image_stream, width=Inches(2))
+#
+#         doc.add_paragraph("")
+#
+#     # ---------------- Answer Key ----------------
+#     doc.add_page_break()
+#     doc.add_heading("Answer Key", level=2)
+#
+#     for ans in data.get("answer_key", []):
+#
+#         para = doc.add_paragraph(f"{ans.get('id', '')}:")
+#         para.paragraph_format.space_after = Pt(6)
+#
+#         answer = ans.get("answer", "")
+#
+#         solution = (
+#                 ans.get("step_by_step_solution")
+#                 or ans.get("solution")
+#                 or ans.get("explanation")
+#                 or ""
+#         )
+#
+#         # Matching-question answers
+#         if (
+#                 isinstance(answer, dict)
+#                 and "ColumnA" in answer
+#                 and "ColumnB" in answer
+#         ):
+#             colA = answer["ColumnA"]
+#             colB = answer["ColumnB"]
+#             rows = max(len(colA), len(colB))
+#
+#             table = doc.add_table(rows=1, cols=2)
+#             table.autofit = True
+#             remove_table_borders(table)
+#
+#             table.cell(0, 0).text = "Column A"
+#             table.cell(0, 1).text = "Column B"
+#
+#             for i in range(rows):
+#                 row_cells = table.add_row().cells
+#                 row_cells[0].text = str(colA[i]) if i < len(colA) else ""
+#                 row_cells[1].text = str(colB[i]) if i < len(colB) else ""
+#
+#         else:
+#             # Correct answer
+#             ans_para = doc.add_paragraph()
+#             ans_para.paragraph_format.space_after = Pt(4)
+#
+#             run = ans_para.add_run("Answer: ")
+#             run.bold = True
+#
+#             ans_para.add_run(
+#                 str(answer) if answer is not None else ""
+#             )
+#
+#         # Step-by-step solution
+#         if solution:
+#
+#             solution_heading = doc.add_paragraph()
+#             solution_heading.paragraph_format.space_before = Pt(4)
+#             solution_heading.paragraph_format.space_after = Pt(4)
+#             solution_heading.paragraph_format.left_indent = Inches(0.2)
+#
+#             run = solution_heading.add_run("Step-by-step solution")
+#             run.bold = True
+#             run.font.color.rgb = RGBColor(105, 75, 190)
+#
+#             if isinstance(solution, list):
+#
+#                 for step_number, step in enumerate(solution, start=1):
+#                     step_para = doc.add_paragraph()
+#                     step_para.paragraph_format.left_indent = Inches(0.3)
+#                     step_para.paragraph_format.space_after = Pt(3)
+#
+#                     step_para.add_run(
+#                         f"{step_number}. {str(step)}"
+#                     )
+#
+#             else:
+#                 solution_para = doc.add_paragraph()
+#                 solution_para.paragraph_format.left_indent = Inches(0.3)
+#                 solution_para.paragraph_format.space_after = Pt(8)
+#
+#                 solution_para.add_run(str(solution))
+#
+#         doc.add_paragraph("")
+#
+#     return doc
 def create_docx_from_json(data):
     doc = Document()
     title = data.get("title") or data.get("header", "Worksheet")
+
+    # ---------------- Design Colours ----------------
+    PURPLE = "694BBE"
+    DARK_PURPLE = "4F3699"
+    LIGHT_PURPLE = "F4F0FF"
+    BORDER_PURPLE = "DDD5F5"
+    DARK_TEXT = "303044"
+    MUTED_TEXT = "777789"
+
+    # ---------------- Formatting Helpers ----------------
+    def shade_paragraph(paragraph, fill):
+        pPr = paragraph._p.get_or_add_pPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:fill"), fill)
+        pPr.append(shd)
+
+    def shade_cell(cell, fill):
+        tcPr = cell._tc.get_or_add_tcPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:fill"), fill)
+        tcPr.append(shd)
+
+    def set_cell_margins(cell, top=90, start=120, bottom=90, end=120):
+        tc = cell._tc
+        tcPr = tc.get_or_add_tcPr()
+        tcMar = tcPr.first_child_found_in("w:tcMar")
+
+        if tcMar is None:
+            tcMar = OxmlElement("w:tcMar")
+            tcPr.append(tcMar)
+
+        for margin, value in (
+            ("top", top), ("start", start),
+            ("bottom", bottom), ("end", end)
+        ):
+            node = tcMar.find(qn(f"w:{margin}"))
+            if node is None:
+                node = OxmlElement(f"w:{margin}")
+                tcMar.append(node)
+
+            node.set(qn("w:w"), str(value))
+            node.set(qn("w:type"), "dxa")
+
+    def style_run(run, size=10, color=DARK_TEXT, bold=False):
+        run.font.name = "Arial"
+        run.font.size = Pt(size)
+        run.font.color.rgb = RGBColor.from_string(color)
+        run.bold = bold
+
+    def add_table_header(table, headings):
+        for index, heading in enumerate(headings):
+            cell = table.rows[0].cells[index]
+            cell.text = heading
+            shade_cell(cell, LIGHT_PURPLE)
+            cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+            set_cell_margins(cell)
+
+            for paragraph in cell.paragraphs:
+                paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                paragraph.paragraph_format.space_after = Pt(0)
+
+                for run in paragraph.runs:
+                    style_run(run, size=9, color=DARK_PURPLE, bold=True)
+
+    def style_table_body(table):
+        for row in table.rows[1:]:
+            for cell in row.cells:
+                cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+                set_cell_margins(cell)
+
+                for paragraph in cell.paragraphs:
+                    paragraph.paragraph_format.space_after = Pt(0)
+
+                    for run in paragraph.runs:
+                        style_run(run, size=9)
+
+    def add_section_divider(paragraph):
+        pPr = paragraph._p.get_or_add_pPr()
+        pBdr = OxmlElement("w:pBdr")
+        bottom = OxmlElement("w:bottom")
+        bottom.set(qn("w:val"), "single")
+        bottom.set(qn("w:sz"), "4")
+        bottom.set(qn("w:space"), "5")
+        bottom.set(qn("w:color"), BORDER_PURPLE)
+        pBdr.append(bottom)
+        pPr.append(pBdr)
 
     # ---------------- Page Setup ----------------
     section = doc.sections[0]
     section.top_margin = Inches(0.8)
     section.bottom_margin = Inches(0.7)
+    section.left_margin = Inches(0.75)
+    section.right_margin = Inches(0.75)
     section.header_distance = Inches(0.35)
     section.footer_distance = Inches(0.35)
+
+    # ---------------- Default Document Style ----------------
+    normal = doc.styles["Normal"]
+    normal.font.name = "Arial"
+    normal.font.size = Pt(10)
+    normal.font.color.rgb = RGBColor.from_string(DARK_TEXT)
+    normal.paragraph_format.space_after = Pt(6)
+    normal.paragraph_format.line_spacing = 1.12
 
     # ---------------- Header: MapBuddyAI Branding ----------------
     header = section.header
     header_para = header.paragraphs[0]
     header_para.clear()
     header_para.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    header_para.paragraph_format.space_after = Pt(6)
+    header_para.paragraph_format.space_after = Pt(7)
 
     brand_run = header_para.add_run("MapBuddyAI")
-    brand_run.bold = True
-    brand_run.font.name = "Arial"
-    brand_run.font.size = Pt(10)
-    brand_run.font.color.rgb = RGBColor(105, 75, 190)
+    style_run(brand_run, size=10, color=PURPLE, bold=True)
 
-    # Subtle divider below header
-    pPr = header_para._p.get_or_add_pPr()
-    pBdr = OxmlElement("w:pBdr")
-    bottom_border = OxmlElement("w:bottom")
-    bottom_border.set(qn("w:val"), "single")
-    bottom_border.set(qn("w:sz"), "6")
-    bottom_border.set(qn("w:space"), "4")
-    bottom_border.set(qn("w:color"), "DCD5F5")
-    pBdr.append(bottom_border)
-    pPr.append(pBdr)
+    add_section_divider(header_para)
 
-    # ---------------- Footer: Divider and Page Number ----------------
+    # ---------------- Footer: Branding and Page Number ----------------
     footer = section.footer
     footer_para = footer.paragraphs[0]
     footer_para.clear()
     footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    footer_para.paragraph_format.space_before = Pt(4)
+    footer_para.paragraph_format.space_before = Pt(5)
 
-    # Divider above footer
-    pPr = footer_para._p.get_or_add_pPr()
-    pBdr = OxmlElement("w:pBdr")
-    top_border = OxmlElement("w:top")
-    top_border.set(qn("w:val"), "single")
-    top_border.set(qn("w:sz"), "6")
-    top_border.set(qn("w:space"), "4")
-    top_border.set(qn("w:color"), "DCD5F5")
-    pBdr.append(top_border)
-    pPr.append(pBdr)
+    add_section_divider(footer_para)
 
     footer_run = footer_para.add_run("MapBuddyAI  |  Page ")
-    footer_run.font.name = "Arial"
-    footer_run.font.size = Pt(8)
-    footer_run.font.color.rgb = RGBColor(130, 130, 145)
+    style_run(footer_run, size=8, color=MUTED_TEXT)
 
-    # Dynamic Word page number field
     page_field = OxmlElement("w:fldSimple")
     page_field.set(qn("w:instr"), "PAGE")
     footer_para._p.append(page_field)
@@ -5962,26 +6395,47 @@ def create_docx_from_json(data):
     grade = data.get("grade", "")
     subject = data.get("subject", "")
 
-    # Name / Date row
-    table1 = doc.add_table(rows=1, cols=2)
-    table1.autofit = True
-    table1.cell(0, 0).text = f"Name: {student_name}"
-    table1.cell(0, 1).text = f"Date: {date}"
-    remove_table_borders(table1)
+    details_table = doc.add_table(rows=2, cols=2)
+    details_table.autofit = False
+    details_table.columns[0].width = Inches(3.35)
+    details_table.columns[1].width = Inches(3.35)
+    remove_table_borders(details_table)
 
-    # Grade / Subject row
-    table2 = doc.add_table(rows=1, cols=2)
-    table2.autofit = True
-    table2.cell(0, 0).text = f"Grade: {grade}"
-    table2.cell(0, 1).text = f"Subject: {subject}"
-    remove_table_borders(table2)
+    details = [
+        ("Name", student_name),
+        ("Date", date),
+        ("Level", grade),
+        ("Subject", subject)
+    ]
+
+    for row_index in range(2):
+        for col_index in range(2):
+            cell = details_table.cell(row_index, col_index)
+            label, value = details[row_index * 2 + col_index]
+
+            cell.text = ""
+            set_cell_margins(cell, top=70, bottom=70)
+
+            paragraph = cell.paragraphs[0]
+            paragraph.paragraph_format.space_after = Pt(2)
+
+            label_run = paragraph.add_run(f"{label}: ")
+            style_run(label_run, size=9, color=PURPLE, bold=True)
+
+            value_run = paragraph.add_run(str(value or ""))
+            style_run(value_run, size=9, color=DARK_TEXT)
 
     # ---------------- Worksheet Title ----------------
-    doc.add_paragraph("")
+    title_spacer = doc.add_paragraph()
+    title_spacer.paragraph_format.space_after = Pt(2)
 
-    title_para = doc.add_paragraph(title)
-    title_para.style = "Heading 1"
-    title_para.paragraph_format.space_after = Pt(12)
+    title_para = doc.add_paragraph()
+    title_para.paragraph_format.space_before = Pt(4)
+    title_para.paragraph_format.space_after = Pt(16)
+    title_para.paragraph_format.keep_with_next = True
+
+    title_run = title_para.add_run(str(title))
+    style_run(title_run, size=21, color=DARK_PURPLE, bold=True)
 
     # ---------------- Questions ----------------
     for q in data.get("questions", []):
@@ -5989,102 +6443,271 @@ def create_docx_from_json(data):
 
         img_matches = re.findall(
             r'<img.*?src="(data:image/[^"]+)".*?>',
-            question_text
+            question_text,
+            flags=re.IGNORECASE
         )
 
-        text_only = re.sub(r'<img.*?>', '', question_text).strip()
+        text_only = re.sub(
+            r'<img.*?>', '', question_text, flags=re.IGNORECASE
+        ).strip()
 
-        para = doc.add_paragraph(f"{q.get('id', '')}. {text_only}")
-        para.paragraph_format.space_after = Pt(12)
+        # Question number badge + question text
+        # ---------------- Question Number and Text ----------------
+        question_para = doc.add_paragraph()
+
+        question_para.paragraph_format.space_before = Pt(12)
+        question_para.paragraph_format.space_after = Pt(9)
+        question_para.paragraph_format.line_spacing = 1.2
+        question_para.paragraph_format.keep_together = True
+
+        raw_id = str(q.get("id", "")).strip()
+
+        question_label = (
+            raw_id if raw_id.upper().startswith("Q")
+            else f"Q{raw_id}"
+        )
+
+        # Purple question number badge
+        badge_run = question_para.add_run(f" {question_label} ")
+        badge_run.font.name = "Aptos"
+        badge_run.font.size = Pt(10)
+        badge_run.bold = True
+        badge_run.font.color.rgb = RGBColor(255, 255, 255)
+
+        rPr = badge_run._r.get_or_add_rPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:fill"), PURPLE)
+        rPr.append(shd)
+
+        # Prominent question text
+        text_run = question_para.add_run(f"  {text_only}")
+        text_run.font.name = "Aptos"
+        text_run.font.size = Pt(12)
+        text_run.bold = True
+        text_run.font.color.rgb = RGBColor.from_string(DARK_PURPLE)
+
+        # ---------------- Gemini-generated SVG visual ----------------
+        visual = q.get("visual")
+
+        if isinstance(visual, dict) and visual.get("type") == "svg":
+            svg_markup = visual.get("svg", "")
+            svg_stream = create_svg_image_stream(svg_markup)
+
+            if svg_stream:
+                visual_para = doc.add_paragraph()
+                visual_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                visual_para.paragraph_format.space_before = Pt(3)
+                visual_para.paragraph_format.space_after = Pt(9)
+                visual_para.paragraph_format.keep_together = True
+
+                visual_para.add_run().add_picture(
+                    svg_stream,
+                    width=Inches(5.3)
+                )
+
+        # ---------------- Match-type questions ----------------
+        options = q.get("options")
+
+        if q.get("type") == "Match" and isinstance(options, dict):
+            colA = options.get("ColumnA", [])
+            colB = options.get("ColumnB", [])
+            rows = max(len(colA), len(colB))
+
+            if rows:
+                table = doc.add_table(rows=1, cols=2)
+                table.autofit = True
+                remove_table_borders(table)
+                add_table_header(table, ["Column A", "Column B"])
+
+                for i in range(rows):
+                    row_cells = table.add_row().cells
+                    row_cells[0].text = str(colA[i]) if i < len(colA) else ""
+                    row_cells[1].text = str(colB[i]) if i < len(colB) else ""
+
+                style_table_body(table)
+
+        # ---------------- Other question options ----------------
+        elif isinstance(options, list):
+            for index, opt in enumerate(options):
+                option_para = doc.add_paragraph()
+                option_para.paragraph_format.left_indent = Inches(0.3)
+                option_para.paragraph_format.first_line_indent = Inches(-0.05)
+                option_para.paragraph_format.space_after = Pt(4)
+                option_para.paragraph_format.keep_together = True
+
+                label = chr(65 + index) if index < 26 else str(index + 1)
+
+                label_run = option_para.add_run(f"{label}.  ")
+                style_run(label_run, size=10, color=PURPLE, bold=True)
+
+                option_run = option_para.add_run(str(opt))
+                style_run(option_run, size=10)
+
+        elif isinstance(options, str) and options.strip():
+            option_para = doc.add_paragraph(options.strip())
+            option_para.paragraph_format.left_indent = Inches(0.3)
+            option_para.paragraph_format.space_after = Pt(5)
+
+        # ---------------- Embedded images ----------------
+        for img_data_url in img_matches:
+            try:
+                image_header, encoded = img_data_url.split(",", 1)
+                img_bytes = base64.b64decode(encoded)
+
+                if image_header.startswith("data:image/svg+xml"):
+                    png_bytes = cairosvg.svg2png(bytestring=img_bytes)
+                    image_stream = io.BytesIO(png_bytes)
+                else:
+                    image_stream = io.BytesIO(img_bytes)
+
+                image_para = doc.add_paragraph()
+                image_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                image_para.paragraph_format.space_before = Pt(4)
+                image_para.paragraph_format.space_after = Pt(8)
+                image_para.add_run().add_picture(
+                    image_stream,
+                    width=Inches(2.5)
+                )
+
+            except Exception as error:
+                print(f"Embedded image could not be added: {error}")
+
+        # ---------------- Blank answer space ----------------
         writing_space = get_writing_line_count(q)
         add_docx_writing_space(doc, writing_space)
-        # Match-type questions
-        if q.get("type") == "Match" and q.get("options"):
-            colA = q["options"].get("ColumnA", [])
-            colB = q["options"].get("ColumnB", [])
-            rows = max(len(colA), len(colB))
 
-            table = doc.add_table(rows=1, cols=2)
-            table.autofit = True
-            remove_table_borders(table)
-
-            table.cell(0, 0).text = "Column A"
-            table.cell(0, 1).text = "Column B"
-
-            for i in range(rows):
-                row_cells = table.add_row().cells
-                row_cells[0].text = colA[i] if i < len(colA) else ""
-                row_cells[1].text = colB[i] if i < len(colB) else ""
-
-            doc.add_paragraph("")
-
-        # Other question options
-        elif q.get("options"):
-            for opt in q["options"]:
-                opt_para = doc.add_paragraph(f"  - {opt}")
-                opt_para.paragraph_format.space_after = Pt(6)
-
-        # Embedded images
-        for img_data_url in img_matches:
-            image_header, encoded = img_data_url.split(",", 1)
-            img_bytes = base64.b64decode(encoded)
-
-            if image_header.startswith("data:image/svg+xml"):
-                png_bytes = cairosvg.svg2png(bytestring=img_bytes)
-                image_stream = io.BytesIO(png_bytes)
-            else:
-                image_stream = io.BytesIO(img_bytes)
-
-            doc.add_picture(image_stream, width=Inches(2))
-
-        doc.add_paragraph("")
+        # Space after each question
+        end_para = doc.add_paragraph()
+        end_para.paragraph_format.space_after = Pt(3)
 
     # ---------------- Answer Key ----------------
-    doc.add_page_break()
-    doc.add_heading("Answer Key", level=2)
+    answer_key = data.get("answer_key", [])
 
-    for ans in data.get("answer_key", []):
-        para = doc.add_paragraph(f"{ans.get('id', '')}:")
-        para.paragraph_format.space_after = Pt(6)
+    if answer_key:
+        doc.add_page_break()
 
-        answer = ans.get("answer")
+        answer_title = doc.add_paragraph()
+        answer_title.paragraph_format.space_after = Pt(4)
+        answer_title.paragraph_format.keep_with_next = True
 
-        # Matching-question answers
-        if (
-            isinstance(answer, dict)
-            and "ColumnA" in answer
-            and "ColumnB" in answer
-        ):
-            colA = answer["ColumnA"]
-            colB = answer["ColumnB"]
-            rows = max(len(colA), len(colB))
+        answer_title_run = answer_title.add_run("Answer Key")
+        style_run(answer_title_run, size=21, color=DARK_PURPLE, bold=True)
 
-            table = doc.add_table(rows=1, cols=2)
-            table.autofit = True
-            remove_table_borders(table)
+        subtitle = doc.add_paragraph(
+            "Correct answers and step-by-step explanations"
+        )
+        subtitle.paragraph_format.space_after = Pt(16)
+        subtitle.paragraph_format.keep_with_next = True
 
-            table.cell(0, 0).text = "Column A"
-            table.cell(0, 1).text = "Column B"
+        for ans in answer_key:
+            raw_id = str(ans.get("id", "")).strip()
+            answer_label = (
+                raw_id if raw_id.upper().startswith("Q")
+                else f"Q{raw_id}"
+            )
 
-            for i in range(rows):
-                row_cells = table.add_row().cells
-                row_cells[0].text = colA[i] if i < len(colA) else ""
-                row_cells[1].text = colB[i] if i < len(colB) else ""
+            # Question reference
+            ref_para = doc.add_paragraph()
+            ref_para.paragraph_format.space_before = Pt(9)
+            ref_para.paragraph_format.space_after = Pt(5)
+            ref_para.paragraph_format.keep_with_next = True
 
-            doc.add_paragraph("")
+            ref_run = ref_para.add_run(f" {answer_label} ")
+            style_run(ref_run, size=9, color="FFFFFF", bold=True)
 
-        else:
-            ans_para = doc.add_paragraph(str(answer or ""))
-            ans_para.paragraph_format.space_after = Pt(6)
+            rPr = ref_run._r.get_or_add_rPr()
+            shd = OxmlElement("w:shd")
+            shd.set(qn("w:fill"), PURPLE)
+            rPr.append(shd)
+
+            answer = ans.get("answer", "")
+
+            solution = (
+                ans.get("step_by_step_solution")
+                or ans.get("solution")
+                or ans.get("explanation")
+                or ""
+            )
+
+            # ---------------- Matching-question answers ----------------
+            if (
+                isinstance(answer, dict)
+                and "ColumnA" in answer
+                and "ColumnB" in answer
+            ):
+                colA = answer["ColumnA"]
+                colB = answer["ColumnB"]
+                rows = max(len(colA), len(colB))
+
+                table = doc.add_table(rows=1, cols=2)
+                table.autofit = True
+                remove_table_borders(table)
+                add_table_header(table, ["Column A", "Column B"])
+
+                for i in range(rows):
+                    row_cells = table.add_row().cells
+                    row_cells[0].text = str(colA[i]) if i < len(colA) else ""
+                    row_cells[1].text = str(colB[i]) if i < len(colB) else ""
+
+                style_table_body(table)
+
+            else:
+                # ---------------- Highlighted final answer ----------------
+                answer_para = doc.add_paragraph()
+                answer_para.paragraph_format.left_indent = Inches(0.15)
+                answer_para.paragraph_format.right_indent = Inches(0.15)
+                answer_para.paragraph_format.space_before = Pt(2)
+                answer_para.paragraph_format.space_after = Pt(8)
+                answer_para.paragraph_format.keep_with_next = bool(solution)
+
+                shade_paragraph(answer_para, LIGHT_PURPLE)
+
+                answer_run = answer_para.add_run("FINAL ANSWER: ")
+                style_run(answer_run, size=9, color=DARK_PURPLE, bold=True)
+
+                value_run = answer_para.add_run(
+                    str(answer) if answer is not None else ""
+                )
+                style_run(value_run, size=10, color=DARK_TEXT, bold=True)
+
+            # ---------------- Step-by-step solution ----------------
+            if solution:
+                solution_heading = doc.add_paragraph()
+                solution_heading.paragraph_format.space_before = Pt(3)
+                solution_heading.paragraph_format.space_after = Pt(5)
+                solution_heading.paragraph_format.keep_with_next = True
+
+                heading_run = solution_heading.add_run("How to solve it")
+                style_run(heading_run, size=10, color=PURPLE, bold=True)
+
+                if isinstance(solution, list):
+                    for step_number, step in enumerate(solution, start=1):
+                        step_para = doc.add_paragraph()
+                        step_para.paragraph_format.left_indent = Inches(0.25)
+                        step_para.paragraph_format.space_after = Pt(4)
+                        step_para.paragraph_format.keep_together = True
+
+                        number_run = step_para.add_run(f"{step_number}. ")
+                        style_run(number_run, size=9, color=PURPLE, bold=True)
+
+                        step_run = step_para.add_run(str(step))
+                        style_run(step_run, size=9, color=DARK_TEXT)
+
+                else:
+                    solution_para = doc.add_paragraph()
+                    solution_para.paragraph_format.left_indent = Inches(0.25)
+                    solution_para.paragraph_format.space_after = Pt(8)
+                    solution_para.paragraph_format.keep_together = True
+
+                    solution_run = solution_para.add_run(str(solution))
+                    style_run(solution_run, size=9, color=DARK_TEXT)
+
+            # Divider between answer entries
+            divider_para = doc.add_paragraph()
+            divider_para.paragraph_format.space_after = Pt(3)
+            add_section_divider(divider_para)
 
     return doc
-
-
-# from docx.shared import Inches, Pt, RGBColor
-# from docx.enum.text import WD_ALIGN_PARAGRAPH
-# from docx.oxml import OxmlElement
-# from docx.oxml.ns import qn
-
 def add_bottom_border(paragraph, color="DCD5F5", size="6"):
     """Add a subtle divider below a paragraph."""
     p = paragraph._p

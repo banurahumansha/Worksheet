@@ -344,6 +344,7 @@ body:has(#worksheet-output-page) {
 .download-actions button,
 .export-actions button,
 button.download-btn,
+#print-btn,
 button.export-btn,
 #download-pdf,
 #download-word,
@@ -373,6 +374,7 @@ button.export-btn,
 .export-actions button:hover,
 button.download-btn:hover,
 button.export-btn:hover,
+#print-worksheet:hover,
 #download-pdf:hover,
 #download-word:hover,
 #save-pdf:hover,
@@ -381,7 +383,9 @@ button.export-btn:hover,
   box-shadow: 0 11px 24px rgba(109, 74, 255, 0.24);
   filter: saturate(1.08);
 }
-
+#print-worksheet:active {
+  transform: translateY(0);
+}
 #worksheet-download-actions button:active,
 .worksheet-download-actions button:active,
 .download-actions button:active,
@@ -934,6 +938,7 @@ code {
   .export-actions button,
   button.download-btn,
   button.export-btn,
+  #print-btn,
   #download-pdf,
   #download-word,
   #save-pdf,
@@ -1126,4 +1131,29 @@ code {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+
+/* AI-generated question visuals */
+.question-visual {
+    width: 100%;
+    max-width: 620px;
+    margin: 20px auto;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.question-visual svg {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    max-height: 260px;
+}
+
+.print{
+font-color
 }
